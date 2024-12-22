@@ -17,7 +17,10 @@ def ar(lista):
 
 def LoadData(type, id, format='csv'):
     path_csv = 'data/' + type + '_' + id + '.' + format
-    data = np.loadtxt(path_csv, delimiter='\t', skiprows=1)
+    try:
+        data = np.loadtxt(path_csv, delimiter='\t', skiprows=1)
+    except:
+        data = np.loadtxt(path_csv, delimiter=',', skiprows=1)
     T = data[:, 0]
     D1 = data[:, 1]
 

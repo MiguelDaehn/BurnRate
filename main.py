@@ -17,22 +17,22 @@ from burnrate import *
 def main():
     testeNakka = True
     testeRand = True
-    id_file = "nakka"
+    id_file = "q2OM"
 
     testeRand=False
-    # testeNakka = False
+    testeNakka = False
 
-    p_min = 3.5
-    p_max = 5.3
+    p_min = 3.85
+    p_max = 4.3
     # p_max = 0
 
-    # prop = 'knsb'
-    # Dt = 9.659
-    # Rho_pct = 0.95
-    # Ng = 4
-    # L = 50.0
-    # De = 45.0
-    # Di = 25.0
+    prop = 'knsb'
+    Dt = 9.659
+    Rho_pct = 0.95
+    Ng = 4
+    L = 50.0
+    De = 45.0
+    Di = 25.0
 
 
     if testeNakka:
