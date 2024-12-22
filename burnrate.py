@@ -3,17 +3,17 @@ import numpy as np
 from startup import *
 
 
-
-def Ab_f(N,De,Di0,L,s):
-    A_b = pi*N*(0.5*(De**2-(Di0+2*s)**2)+(L-2*s)*(Di0+2*s))
+def Ab_f(N, De, Di0, L, s):
+    A_b = pi * N * (0.5 * (De ** 2 - (Di0 + 2 * s) ** 2) + (L - 2 * s) * (Di0 + 2 * s))
     return A_b
 
 
-def Delta_s(At,Ab,Pc,rho,cstar,delta_t):
-    delta_s = (At*Pc*delta_t)/(Ab*rho*cstar)
+def Delta_s(At, Ab, Pc, rho, cstar, delta_t):
+    delta_s = (At * Pc * delta_t) / (Ab * rho * cstar)
     return delta_s
 
-def BR_from_pressure(id,motor_data):
+
+def BR_from_pressure(id, motor_data):
     T, Pc = LoadData('BR', id.lower(), 'csv')
     Pc = Pc / 10 ** 6
     delta_t = np.array([T[i + 1] - T[i] for i in range(len(T) - 1)])
@@ -32,11 +32,11 @@ def BR_from_pressure(id,motor_data):
     L = motor_data[4].astype(float)
     De = motor_data[5].astype(float)
     Di = motor_data[6].astype(float)
-    w0 = (De-Di)/2
-    rho_g = rho_pct*rho_prop[prop]
+    w0 = (De - Di) / 2
+    rho_g = rho_pct * rho_prop[prop]
 
-    At = pi*(Dt/2)**2
-    Vg = pi*((De/2/10)**2-(Di/2/10)**2)*(L/10)
+    At = pi * (Dt / 2) ** 2
+    Vg = pi * ((De / 2 / 10) ** 2 - (Di / 2 / 10) ** 2) * (L / 10)
     mp = Ng * Vg * rho_g
     Psum = np.sum(Pc)
     cstar = ((At / mp) * Psum * dt_avg) / 1000
@@ -75,23 +75,21 @@ def BR_from_pressure(id,motor_data):
         if finish - start > 20:
             break
 
-    if p_max ==0:
+    if p_max == 0:
         pass
     else:
-        j = np.where(Pc>p_min)
+        j = np.where(Pc > p_min)
         k = np.where(Pc < p_max)
         z = np.intersect1d(j, k)
         Pc = Pc[z]
         ds_dt = ds_dt[z]
 
-    return Pc,ds_dt
-
-
-
+    return Pc, ds_dt
 
 
 def main():
     return 0
+
 
 if __name__ == '__main__':
     main()
