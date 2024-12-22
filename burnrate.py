@@ -13,6 +13,13 @@ def Delta_s(At, Ab, Pc, rho, cstar, delta_t):
     return delta_s
 
 
+def func_powerlaw(x, n, a):
+    return x ** n * a
+
+
+target_func = func_powerlaw
+
+
 def BR_from_pressure(id, motor_data):
     T, Pc = LoadData('BR', id.lower(), 'csv')
     if max(Pc > 1e5):
@@ -89,7 +96,15 @@ def BR_from_pressure(id, motor_data):
         Pc = Pc[z]
         ds_dt = ds_dt[z]
 
-    return Pc, ds_dt
+
+
+    target_func = func_powerlaw
+
+    pars, sol0 = curve_fit(func_powerlaw, Pc, ds_dt, p0=np.asarray([5, 0.5]),maxfev=4000)
+    n, a = pars
+    print(f'a: {a}, \nn: {n}')
+    plt.plot(Pc, target_func(Pc, *pars), '--')
+    return Pc, ds_dt,pars
 
 
 def main():

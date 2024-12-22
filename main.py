@@ -22,7 +22,7 @@ def main():
     testeRand=False
     # testeNakka = False
 
-    p_min = 3
+    p_min = 3.5
     p_max = 6
     # p_max = 0
 
@@ -56,12 +56,12 @@ def main():
 
     motor = ar([prop, Dt, Rho_pct, Ng, L, De, Di, p_min, p_max])
 
-    Pc, BR = BR_from_pressure(id_file, motor)
-
+    Pc, BR, pars = BR_from_pressure(id_file, motor)
+    # plt.plot(Pc, target_func(Pc, *pars), '--')
 
     pl(Pc, BR, 'Pressão na Câmara [MPa]', 'Burn Rate [mm/s]',
        'Taxa de regressão em função da pressão',
-       labelf='Taxa de Regressão do grão', log=0,
+       labelf=f'{pars[1]}·P^{pars[0]}', log=0,
        x0f=[0.9 * p_min, 1.0 * p_max],
        y0f=[0.9 * min(BR[np.where(BR>0)]), 1.1 * max(BR[np.where(BR<40)])])
 
