@@ -23,7 +23,7 @@ def main():
     # testeNakka = False
 
     p_min = 3.5
-    p_max = 6
+    p_max = 5.3
     # p_max = 0
 
     # prop = 'knsb'
@@ -62,8 +62,8 @@ def main():
     pl(Pc, BR, 'Pressão na Câmara [MPa]', 'Burn Rate [mm/s]',
        'Taxa de regressão em função da pressão',
        labelf=f'{pars[1]}·P^{pars[0]}', log=0,
-       x0f=[0.9 * p_min, 1.0 * p_max],
-       y0f=[0.9 * min(BR[np.where(BR>0)]), 1.1 * max(BR[np.where(BR<40)])])
+       x0f=[0.95 * p_min, 1.0 * p_max],
+       y0f=[0.95 * min(BR[np.where(BR>0)]), 1.05 * max(BR[np.where(BR<40)])])
 
     return 0
 

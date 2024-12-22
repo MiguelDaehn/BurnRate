@@ -103,7 +103,8 @@ def BR_from_pressure(id, motor_data):
     pars, sol0 = curve_fit(func_powerlaw, Pc, ds_dt, p0=np.asarray([5, 0.5]),maxfev=4000)
     n, a = pars
     print(f'a: {a}, \nn: {n}')
-    plt.plot(Pc, target_func(Pc, *pars), '--')
+    plt.scatter(Pc, ds_dt, marker='*', color='red')
+    plt.plot(Pc, target_func(Pc, *pars), '--',label=f'{pars[1]}·P^{pars[0]}')
     return Pc, ds_dt,pars
 
 
