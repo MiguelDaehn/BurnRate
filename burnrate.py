@@ -15,7 +15,8 @@ def Delta_s(At, Ab, Pc, rho, cstar, delta_t):
 
 def BR_from_pressure(id, motor_data):
     T, Pc = LoadData('BR', id.lower(), 'csv')
-    Pc = Pc / 10 ** 6
+    if max(Pc > 1e5):
+        Pc = Pc / 10 ** 6
     delta_t = np.array([T[i + 1] - T[i] for i in range(len(T) - 1)])
     delta_t = np.append(delta_t, delta_t[-1])
     dt_avg = np.average(delta_t)
@@ -60,7 +61,11 @@ def BR_from_pressure(id, motor_data):
                 s[i] = s[i - 1] + delta_s[i - 1]
             if i > 0:
                 delta_s[i] = Delta_s(At, Ab[i], Pc[i], rho_g, cstar, delta_t[i])
-                ds_dt[i] = delta_s[i] / delta_t[i]
+                if delta_t[i] != 0:
+                    ds_dt[i] = delta_s[i] / delta_t[i]
+                else:
+                    ds_dt[i] = 0
+                # ic(delta_t[i])
 
         err_w0 = err(w0, s[-1])
         # ic(err_w0)
@@ -72,7 +77,7 @@ def BR_from_pressure(id, motor_data):
             ss[0] = ss[1]
             ss[1] = (ss[1] + ss[2]) / 2
         finish = time.time()
-        if finish - start > 20:
+        if finish - start > 10:
             break
 
     if p_max == 0:
