@@ -9,7 +9,8 @@ from burnrate import *
 # when pressure drops to 0. just set ds/dt = 0.
 # 2:
 # log scale graph not working. is it because the graph is in MPa? shouldn't be, right?
-
+# 3:
+# fit the power law https://www.youtube.com/watch?v=wujirumjHxU
 
 
 
