@@ -1,3 +1,5 @@
+import numpy as np
+
 from startup import *
 
 
@@ -13,11 +15,15 @@ def Delta_s(At,Ab,Pc,rho,cstar,delta_t):
 
 def BR_from_pressure(id,motor_data):
     T, Pc = LoadData('BR', id.lower(), 'csv')
-    Pc = Pc * 10 ** 6
+    Pc = Pc / 10 ** 6
     delta_t = np.array([T[i + 1] - T[i] for i in range(len(T) - 1)])
     delta_t = np.append(delta_t, delta_t[-1])
     dt_avg = np.average(delta_t)
 
+    p_min = motor_data[7].astype(float)
+    p_max = motor_data[8].astype(float)
+    # p_min *= 1e6
+    # p_max *= 1e6
 
     prop = motor_data[0].lower()
     Dt = motor_data[1].astype(float)
@@ -41,8 +47,9 @@ def BR_from_pressure(id,motor_data):
     delta_s = np.zeros_like(T)
     ds_dt = np.zeros_like(T)
 
-    delta_s[1] = 0.1
+    # delta_s[1] = 0.0
     ss = np.array([0, 5, 100]) / 100
+    start = time.time()
     while err_w0 > 1e-15:
         s[1] = ss[1]
         for i, t in enumerate(T):
@@ -64,8 +71,20 @@ def BR_from_pressure(id,motor_data):
         else:
             ss[0] = ss[1]
             ss[1] = (ss[1] + ss[2]) / 2
+        finish = time.time()
+        if finish - start > 20:
+            break
 
-    return Pc/10**6,ds_dt
+    if p_max ==0:
+        pass
+    else:
+        j = np.where(Pc>p_min)
+        k = np.where(Pc < p_max)
+        z = np.intersect1d(j, k)
+        Pc = Pc[z]
+        ds_dt = ds_dt[z]
+
+    return Pc,ds_dt
 
 
 

@@ -26,8 +26,11 @@ def err(x1,x2):
         return 0
     return abs((x1-x2)/x1)
 
-def pl(x,y,lx='',ly='',tit='',labelf='',x0f=[0,None],y0f=[0,None]):
-    plt.plot(x,y,label = labelf)
+def pl(x,y,lx='',ly='',tit='',labelf='',x0f=[0,None],y0f=[0,None],log=0):
+    if log==0:
+        plt.plot(x,y,label = labelf)
+    else:
+        plt.loglog(x,y,label = labelf)
     plt.scatter(x,y,marker='*',color='red')
     plt.grid(True)
     plt.ylabel(ly)
@@ -40,6 +43,9 @@ def pl(x,y,lx='',ly='',tit='',labelf='',x0f=[0,None],y0f=[0,None]):
     return
 
 rho_prop = {'knsu':1.889,'knsb':1.841,'kner':1.820,'kndx':1.879,'knmn':1.854,'knpsb':1.923}
+
+
+
 
 if __name__ == '__main__':
     main()
