@@ -3,6 +3,15 @@ import numpy as np
 from startup import *
 from burnrate import *
 
+#TODO:
+# 1:
+# Correct the error, discontinuity that occurs
+# when pressure drops to 0. just set ds/dt = 0.
+# 2:
+# log scale graph not working. is it because the graph is in MPa? shouldn't be, right?
+
+
+
 
 def main():
     testeNakka = True
