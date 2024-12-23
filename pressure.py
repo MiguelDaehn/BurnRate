@@ -1,6 +1,8 @@
 from startup import *
 
+prop = 'knsu'
 
+Ru = 8314.34
 
 
 
