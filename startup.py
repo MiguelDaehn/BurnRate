@@ -6,6 +6,7 @@ from icecream import ic
 import time
 from scipy.optimize import curve_fit
 
+Ru = 8314.34
 
 def main():
     return 0
@@ -51,6 +52,11 @@ def pl(x, y, lx='', ly='', tit='', labelf='', x0f=[0, None], y0f=[0, None], log=
 
 
 rho_prop = {'knsu': 1.889, 'knsb': 1.841, 'kner': 1.820, 'kndx': 1.879, 'knmn': 1.854, 'knpsb': 1.923}
+
+#TODO:
+#criar dicionario {propelente: valor da coluna que ele representa na tabela de propriedades}
+rho_prop = {'knsu': 1.889, 'knsb': 1.841, 'kner': 1.820, 'kndx': 1.879, 'knmn': 1.854, 'knpsb': 1.923}
+
 properties_path = 'data/properties.csv'
 properties_table = np.loadtxt(properties_path, delimiter=',', skiprows=1, usecols=range(1, 8))
 ic(properties_table)

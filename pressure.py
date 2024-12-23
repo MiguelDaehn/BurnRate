@@ -2,9 +2,11 @@ from startup import *
 
 prop = 'knsu'
 
-Ru = 8314.34
 
 
+def calculate_pressure_parameters():
+
+    return 0
 
 
 
