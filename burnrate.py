@@ -107,6 +107,49 @@ def BR_from_pressure(id, motor_data):
     plt.plot(Pc, target_func(Pc, *pars), '--',label=f'{pars[1]}·P^{pars[0]}')
     return Pc, ds_dt,pars
 
+def pp(propt):
+    rddatapath = 'data/BR_dict_'+propt+'.csv'
+    rdp = np.loadtxt(rddatapath, delimiter=',', skiprows=1, usecols=range(1, 5))
+    ic(np.size(rdp))
+    if np.size(rdp) == 0:
+        pass
+    ic(rdp)
+    return rdp
+
+rd_knsu = pp('knsu')
+rd_knsb = pp('knsb')
+rd_kndx = pp('kndx')
+rd_knfr = pp('knfr')
+rd_kner = pp('kner')
+rd_knpsb = pp('knpsb')
+
+
+def rdp(rd_prop, P):
+    if P > 1e5:
+        P = P * 1e-6
+
+    result = None  # Initialize result variable
+    for i, row in enumerate(rd_prop):
+        # Check if row is a scalar or an array
+        if isinstance(row, np.ndarray):
+            if len(row) < 4:
+                raise ValueError("Row does not have enough columns.")
+        else:
+            raise ValueError("Row is not an array.")
+
+        if (P >= row[0]) and (P <= row[1]):  # Use 'and' for logical comparison
+            result = row[2] * P ** row[3]  # Use row[2] instead of rd[2]
+            break  # Exit the loop once the condition is met
+
+    if result is None:
+        raise ValueError('ERROR: no adequate pressure interval found!')
+
+    return result
+
+
+def rdot_br():
+    rdot = 0
+    return rdot
 
 def main():
     return 0
