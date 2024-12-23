@@ -110,10 +110,10 @@ def BR_from_pressure(id, motor_data):
 def pp(propt):
     rddatapath = 'data/BR_dict_'+propt+'.csv'
     rdp = np.loadtxt(rddatapath, delimiter=',', skiprows=1, usecols=range(1, 5))
-    ic(np.size(rdp))
+
     if np.size(rdp) == 0:
         pass
-    ic(rdp)
+    # ic(rdp)
     return rdp
 
 rd_knsu = pp('knsu')

@@ -18,6 +18,7 @@ def main():
     testeNakka = True
     testeRand = True
     test_BRfrompressure = False
+    test_BRmultiple = False
     id_file = "q2OM"
 
     testeRand=False
@@ -60,43 +61,33 @@ def main():
     if test_BRfrompressure:
         Pc, BR, pars = BR_from_pressure(id_file, motor)
         # plt.plot(Pc, target_func(Pc, *pars), '--')
-    Prange = np.linspace(0.12,10,10000)
-    # Calculate Rd values for each dataset
-    Rd1 = [rdp(rd_knsb, p) for p in Prange]
-    Rd2 = [rdp(rd_knsu, p) for p in Prange]
-    Rd3 = [rdp(rd_kndx, p) for p in Prange]
-    Rd4 = [rdp(rd_kner, p) for p in Prange]
-    Rd5 = [rdp(rd_knpsb, p) for p in Prange]
-    Rd6 = [rdp(rd_knfr, p) for p in Prange]
+        # pl(Pc, BR, 'Pressão na Câmara [MPa]', 'Burn Rate [mm/s]',
+        #    'Taxa de regressão em função da pressão',
+        #    labelf=f'{pars[1]}·P^{pars[0]}', log=0,
+        #    x0f=[0.95 * p_min, 1.0 * p_max],
+        #    y0f=[0.95 * min(BR[np.where(BR>0)]), 1.05 * max(BR[np.where(BR<40)])])
+    if test_BRmultiple:
+        Prange = np.linspace(0.12,10,10000)
+        # Calculate Rd values for each dataset
+        Rd1 = ar([rdp(rd_knsb, p) for p in Prange])
+        Rd2 = ar([rdp(rd_knsu, p) for p in Prange])
+        Rd3 = ar([rdp(rd_kndx, p) for p in Prange])
+        Rd4 = ar([rdp(rd_kner, p) for p in Prange])
+        Rd5 = ar([rdp(rd_knpsb, p) for p in Prange])
+        Rd6 = ar([rdp(rd_knfr, p) for p in Prange])
+        Rd = ar([Rd1,Rd2,Rd3,Rd4,Rd5,Rd6])
 
-    # Convert lists to numpy arrays for easier plotting
-    Rd1 = np.array(Rd1)
-    Rd2 = np.array(Rd2)
-    Rd3 = np.array(Rd3)
-    Rd4 = np.array(Rd4)
-    Rd5 = np.array(Rd5)
-    Rd6 = np.array(Rd6)
+        for rd in Rd:
+            plt.plot(Prange,rd)
 
-    # Plot each dataset
-    plt.plot(Prange, Rd1, label='Rd Knsb')
-    plt.plot(Prange, Rd2, label='Rd Knsu')
-    plt.plot(Prange, Rd3, label='Rd Kndx')
-    plt.plot(Prange, Rd4, label='Rd Kner')
-    plt.plot(Prange, Rd5, label='Rd Knpsb')
-    plt.plot(Prange, Rd6, label='Rd Knfr')
 
-    # Add labels and title
-    plt.xlabel('Pressure (P)')
-    plt.ylabel('Rd Values')
-    plt.title('Rd Values vs Pressure')
-    plt.legend()  # Show legend
-    plt.grid()  # Optional: add a grid for better readability
-    plt.show()
-    # pl(Pc, BR, 'Pressão na Câmara [MPa]', 'Burn Rate [mm/s]',
-    #    'Taxa de regressão em função da pressão',
-    #    labelf=f'{pars[1]}·P^{pars[0]}', log=0,
-    #    x0f=[0.95 * p_min, 1.0 * p_max],
-    #    y0f=[0.95 * min(BR[np.where(BR>0)]), 1.05 * max(BR[np.where(BR<40)])])
+        # Add labels and title
+        plt.xlabel('Pressure [MPa]')
+        plt.ylabel('R_dot [mm/s]')
+        plt.title('Rd Values vs Pressure')
+        plt.legend()  # Show legend
+        plt.grid()  # Optional: add a grid for better readability
+        plt.show()
 
     return 0
 
