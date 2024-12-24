@@ -41,7 +41,9 @@ def BR_from_pressure(id, motor_data):
     De = motor_data[5].astype(float)
     Di = motor_data[6].astype(float)
     w0 = (De - Di) / 2
-    rho_g = rho_pct * rho_prop[prop]
+    dp = dict_prop[prop]
+    rhoideal = properties_table[0][dp]
+    rho_g = rho_pct * rhoideal
 
     At = pi * (Dt / 2) ** 2
     Vg = pi * ((De / 2 / 10) ** 2 - (Di / 2 / 10) ** 2) * (L / 10)
@@ -184,7 +186,10 @@ def rdot_br(N,motor_data):
     ratto = rat*to
 
     tw0 = (De-Di) / 2
-    rho_g = 1000*rho_prop[prop]*Rho_pct
+    dp = dict_prop[prop]
+    rhoideal = properties_table[0][dp]
+
+    rho_g = 1000*rhoideal*Rho_pct
     At = pi * (Dt / 2) ** 2
 
     #Assuming At is in mm² units, A_star is At in m²

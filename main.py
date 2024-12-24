@@ -15,11 +15,11 @@ from burnrate import *
 
 
 def main():
-    testeNakka = True
+    testeNakka = False
     testeRand = False
     test_BRfrompressure = False
     test_BRmultiple = False
-    teste_pressure = False
+    teste_pressure = True
     id_file = "q2OM"
 
 
@@ -27,7 +27,10 @@ def main():
     p_min = 3.85
     p_max = 4.3
     # p_max = 0
-
+    #TODO:
+    #Add a function that takes initial parameters such as a Diameter
+    #And returns ALL needed parameters that can be calculated quickly
+    #In order to declutter other functions (having calculations in them that don't serve the main purpose)
     prop = 'knsb'
     Dt = 9.659
     Rho_pct = 0.95
