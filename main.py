@@ -56,7 +56,8 @@ def main():
         De = 50
         Di = 4
 
-    motor = ar([prop, Dt, Rho_pct, Ng, L, De, Di, p_min, p_max])
+    csi, esi,osi = [1,1,0]
+    motor = ar([prop, Dt, Rho_pct, Ng, L, De, Di, p_min, p_max,csi,esi,osi])
 
     if test_BRfrompressure:
         Pc, BR, pars = BR_from_pressure(id_file, motor)
@@ -88,6 +89,8 @@ def main():
         plt.legend()  # Show legend
         plt.grid()  # Optional: add a grid for better readability
         plt.show()
+
+    rdot_br(1000,motor)
 
     return 0
 

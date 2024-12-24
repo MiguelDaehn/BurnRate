@@ -146,8 +146,103 @@ def rdp(rd_prop, P):
 
     return result
 
+def pl_m(x,y_arr):
+    for row in y_arr:
+        pl(x,row,x0f=[None, None], y0f=[None, None])
+    return 0
 
-def rdot_br():
+def rdot_br(n,motor_data):
+    prop = motor_data[0].astype(str)
+    Dt = motor_data[1].astype(float)
+    Rho_pct = motor_data[2].astype(float)
+    Ng = motor_data[3].astype(float)
+    L0 = motor_data[4].astype(float)
+    De = motor_data[5].astype(float)
+    Di = motor_data[6].astype(float)
+    p_min = motor_data[7].astype(float)
+    p_max = motor_data[8].astype(float)
+
+    csi = motor_data[9].astype(int)
+    esi = motor_data[10].astype(int)
+    osi = motor_data[11].astype(int)
+
+    #TODO:
+    #Add functionality to check if the user is
+    #separating KNSB grains with o-rings
+    # L_oring = motor_data[x]
+    #Lc = Ng*(L0+L_oring)
+    Lc= (Ng*L0)*1.2
+    Vc = (Lc*(pi/4)*De**2)/1000**3
+    dp = dict_prop[prop]
+    rat = Ru/properties_table[2][dp]
+    # Manipulate 'nuc' to reach the calculated value of c*
+    #if calculating from experimental pressure values
+    nuc = 0.95
+    to = nuc*properties_table[4][dp]
+    ratto = rat*to
+
+    tw0 = (De-Di) / 2
+    rho_g = rho_prop[prop]
+    At = pi * (Dt / 2) ** 2
+
+    #Assuming At is in mm² units, A_star is At in m²
+    A_star = At/(1e6)
+    Vg0 = pi * ((Dt / 2) / 10) ** 2
+    mp0 = Ng * Vg0 * rho_g
+
+    s = np.linspace(0,tw0,n)
+    incs = s[1]-s[0]
+
+    DI = np.zeros_like(s)
+    DE = np.zeros_like(s)
+    L = np.zeros_like(s)
+    TW = np.zeros_like(s)
+    A_duct = np.zeros_like(s)
+    A_duct_t = np.zeros_like(s)
+    AI = np.zeros_like(s)
+    Pc_pa = np.ones_like(s)*patm*1e6
+    rho_prod = np.zeros_like(s)
+    m_sto = np.zeros_like(s)
+    V_g = np.zeros_like(s)
+    V_free = np.ones_like(s)*Vc
+
+
+    DI[0] = Di
+    DE[0] = De
+    L[0] = L0*Ng
+    TW[0] = tw0
+
+    #Note:
+    #Here I'm assuming that the grain outer diameter is the case inner diameter
+    #Of course there is thermal protection too, but the area we're gonna use (A_duct) is the
+    #area through which the gasses can flow so I'll take the initial grain outer diameter as the maximum
+    #flowing internal d1iameter.
+
+    A_duct[0] = (pi/4)*(Di**2)
+    A_duct_t[0] = A_duct[0]/At
+    # Ignore: Pc_pa[0] += rho_prod[i]*ratto
+    V_g[0] = Vg0
+
+    for i in range(1,n):
+        DI[i] = DI[i-1]+csi*2*incs
+        DE[i] = DE[i-1]-osi*2*incs
+        L[i] = L[i-1]-Ng*esi*2*incs
+        TW[i] = (DE[i]-DI[i])/2
+        A_duct[i] = (pi/4)*De**2 - (pi/4)*(DE[i]**2-DI[i]**2)
+        A_duct_t[i] = A_duct[i]/At
+        # AI[i] = =($M29-patm)*1000000*$I29/SQRT(rat*to)*SQRT(k)*(2/(k+1))^((k+1)/2/(k-1))
+        rho_prod[i] = rho_prod[i-1]
+        Pc_pa[i] += rho_prod[i]*ratto
+        V_g[i] = ((pi/4)*(DE[i]**2-DI[i]**2)*L[i])/(1000**3)
+        V_free[i] -= V_g[i]
+        
+
+    arr_plot = ar([DI,DE,L,TW,A_duct,A_duct_t])
+    # pl_m(s,arr_plot)
+    ic(arr_plot)
+
+
+
     rdot = 0
     return rdot
 

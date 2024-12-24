@@ -6,8 +6,8 @@ from icecream import ic
 import time
 from scipy.optimize import curve_fit
 
-Ru = 8314.34
-
+Ru = 8314.34 #kg/mol-K
+patm = 0.101325 #MPa
 def main():
     return 0
 
@@ -51,7 +51,7 @@ def pl(x, y, lx='', ly='', tit='', labelf='', x0f=[0, None], y0f=[0, None], log=
     return
 
 
-rho_prop = {'knsu': 1.889, 'knsb': 1.841, 'kner': 1.820, 'kndx': 1.879, 'knmn': 1.854, 'knpsb': 1.923}
+dict_prop = {'kndx': 0, 'knsb': 1, 'knsu':2,'kner': 3, 'knmn': 4, 'knfr':5,'knpsb': 6}
 
 #TODO:
 #criar dicionario {propelente: valor da coluna que ele representa na tabela de propriedades}
