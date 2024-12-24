@@ -18,7 +18,7 @@ def main():
     testeNakka = True
     testeRand = False
     test_BRfrompressure = False
-    test_BRmultiple = True
+    test_BRmultiple = False
     teste_pressure = False
     id_file = "q2OM"
 
@@ -40,7 +40,7 @@ def main():
     if testeNakka:
         prop = 'knpsb'
         dp = dict_prop[prop]
-        rhoideal = properties_table[0][dp]
+        rhoideal = ic(properties_table[0][dp])
         At = 81.1
         Dt = np.sqrt(At / (pi / 4)) * 10
         Rho_pct = 1.912 / rhoideal
@@ -50,9 +50,11 @@ def main():
         Di = 13.88
     elif(testeRand):
         prop = 'knpsb'
+        dp = dict_prop[prop]
+        rhoideal = ic(properties_table[0][dp])
         At = 81.1
         Dt = np.sqrt(At / (pi / 4)) * 10
-        Rho_pct = 1.912 / rho_prop[prop]
+        Rho_pct = 1.912 / rhoideal
         Ng = 2
         L = 65.0
         De = 50
