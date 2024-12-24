@@ -16,13 +16,13 @@ from burnrate import *
 
 def main():
     testeNakka = True
-    testeRand = True
+    testeRand = False
     test_BRfrompressure = False
-    test_BRmultiple = False
+    test_BRmultiple = True
+    teste_pressure = False
     id_file = "q2OM"
 
-    testeRand=False
-    testeNakka = False
+
 
     p_min = 3.85
     p_max = 4.3
@@ -39,9 +39,11 @@ def main():
 
     if testeNakka:
         prop = 'knpsb'
+        dp = dict_prop[prop]
+        rhoideal = properties_table[0][dp]
         At = 81.1
         Dt = np.sqrt(At / (pi / 4)) * 10
-        Rho_pct = 1.912 / rho_prop[prop]
+        Rho_pct = 1.912 / rhoideal
         Ng = 2
         L = 65.0
         De = 43.1
@@ -70,12 +72,12 @@ def main():
     if test_BRmultiple:
         Prange = np.linspace(0.12,10,10000)
         # Calculate Rd values for each dataset
-        Rd1 = ar([rdp(rd_knsb, p) for p in Prange])
-        Rd2 = ar([rdp(rd_knsu, p) for p in Prange])
-        Rd3 = ar([rdp(rd_kndx, p) for p in Prange])
-        Rd4 = ar([rdp(rd_kner, p) for p in Prange])
-        Rd5 = ar([rdp(rd_knpsb, p) for p in Prange])
-        Rd6 = ar([rdp(rd_knfr, p) for p in Prange])
+        Rd1 = ar([rdp('knsb', p) for p in Prange])
+        Rd2 = ar([rdp('knsu', p) for p in Prange])
+        Rd3 = ar([rdp('kndx', p) for p in Prange])
+        Rd4 = ar([rdp('kner', p) for p in Prange])
+        Rd5 = ar([rdp('knpsb', p) for p in Prange])
+        Rd6 = ar([rdp('knfr', p) for p in Prange])
         Rd = ar([Rd1,Rd2,Rd3,Rd4,Rd5,Rd6])
 
         for rd in Rd:
@@ -90,7 +92,8 @@ def main():
         plt.grid()  # Optional: add a grid for better readability
         plt.show()
 
-    rdot_br(1000,motor)
+    if teste_pressure:
+        rdot_br(835, motor)
 
     return 0
 
