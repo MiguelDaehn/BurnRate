@@ -182,8 +182,8 @@ def rdot_br(N,motor_data):
     #if calculating from experimental pressure values
     nuc = 0.95
     to = nuc*properties_table[3][dp]
-    # ic(to)
     ratto = rat*to
+    # ic(ratto)
 
     tw0 = (De-Di) / 2
     dp = dict_prop[prop]
@@ -242,7 +242,7 @@ def rdot_br(N,motor_data):
     V_g[0] = Vg0
     V_free[0] = Vc-Vg0
     m_grain[0] = rho_g*Vg0
-    # rdot[0] =
+    rdot[0] = rdp(prop,patm)
 
     for i in range(1, N):
         DI[i] = DI[i-1]+csi*2*incs
@@ -251,34 +251,43 @@ def rdot_br(N,motor_data):
         TW[i] = (DE[i]-DI[i])/2
         A_duct[i] = (pi/4)*De**2 - (pi/4)*(DE[i]**2-DI[i]**2)
         A_duct_t[i] = A_duct[i]/At
-        # t[i] =
+
+        t[i] = incs / rdot[i-1]+t[i-1]
+
         V_g[i] = ((pi/4)*(DE[i]**2-DI[i]**2)*L[i])/(1000**3)
+        V_free[i] -= V_g[i]
         m_grain[i] = rho_g*(V_g[i])
         # if m_grain[i] > AI[i]:
         #     mdot_nozzle[i] =
         mdot_ger[i] =(m_grain[i-1]-m_grain[i])/(t[i]-t[i-1])
         m_stodot[i] =mdot_ger[i]-mdot_nozzle[i]
         m_sto[i] = m_stodot[i]*(t[i]-t[i-1])+m_sto[i-1]
+        ic(m_sto[0:5])
         rho_prod[i] = m_sto[i]/V_free[i]
+        # ic(m_sto[i] / V_free[i])
         Pc_pa[i] += rho_prod[i]*ratto
         Pc_Mpa[i] = Pc_pa[i]/1e6
+        # ic(i,Pc_Mpa[i])
+        try:
+            rdot[i] = rdp(prop,Pc_Mpa[i])
+        except:
+            ic(m_sto[i]/V_free[i])
+
         AI[i] =(Pc_Mpa[i-1]-patm)*1e6*A_star*par_AI
-        V_free[i] -= V_g[i]
-        
+
 
     arr_plot = ar([rho_prod,Pc_pa,AI])
     arr_m = ar([s,TW,DI,DE,L,A_duct,A_duct_t,rdot,t,V_g,V_free,m_grain,mdot_ger,mdot_nozzle,m_stodot,m_sto,rho_prod,Pc_pa,Pc_Mpa,AI])
 
     # TODO:
+    # Consertar:
     # rho_prod, Pc_pa,AI
     # pl_m(s,arr_plot)
+
     for aa in arr_m:
         ic(aa[1])
-    # ic(V_g)
-
-
-    rdot = 0
-    return rdot
+    ic(arr_m)
+    return Pc_Mpa
 
 def main():
     return 0
