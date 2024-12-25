@@ -257,18 +257,17 @@ def rdot_br(N,motor_data):
         TW[i] = (DE[i]-DI[i])/2
         A_duct[i] = (pi/4)*De**2 - (pi/4)*(DE[i]**2-DI[i]**2)
         A_duct_t[i] = A_duct[i]/At
-
-        #Above this line, all are functional
-
-        rdot[i] = rdp(prop,Pc_Mpa2[i])
-        ic(i,Pc_Mpa2[i],rdot[i])
-        t[i] = incs / rdot[i]+t[i-1]
-
         V_g[i] = ((pi/4)*(DE[i]**2-DI[i]**2)*L[i])/(1000**3)
         V_free[i] -= V_g[i]
         m_grain[i] = rho_g*(V_g[i])
-        # (V29<AI29,IF(AB28>pbd,AI29,0),AI29)
 
+        #Above this line, all are functional --/---/--/---/--/---/--/---/--/---/--/---/
+
+        rdot[i] = rdp(prop,Pc_Mpa2[i])
+        t[i] = incs / rdot[i]+t[i-1]
+
+
+        AI[i] =(Pc_Mpa2[i]-patm)*1e6*A_star*par_AI
         if (mdot_ger[i] < AI[i]):
             if Pc_Mpa[i-1]>pbd:
                 mdot_nozzle[i] =AI[i]
@@ -285,13 +284,15 @@ def rdot_br(N,motor_data):
         Pc_pa[i] += rho_prod[i]*ratto
         Pc_Mpa[i] = Pc_pa[i]/1e6
 
-        # ic(t[i])
+        # ic(i,Pc_Mpa2[i],rdot[i])
+        # ic(i,Pc_pa[i])
+        ic(i,mdot_nozzle[i],mdot_ger[i],AI[i])
+        # ic(i,Pc_Mpa[i])
+        # ic(i,t[i])
         # ic(i,rdot[i])
         # ic(i,m_sto[i])
-        # ic(i,Pc_Mpa[i])
 
 
-        AI[i] =(Pc_Mpa2[i]-patm)*1e6*A_star*par_AI
 
     # ic(rdot)
     arr_plot = ar([rho_prod,Pc_pa,AI])
@@ -301,10 +302,13 @@ def rdot_br(N,motor_data):
                 mdot_nozzle,m_stodot,m_sto,rho_prod,Pc_pa,Pc_Mpa,AI])
 
     # TODO:
-    # Consertar:
+    # fix the following:
     # rho_prod, Pc_pa,AI,rdot,m_sto,m_stodot,t,mdot_ger,mdot_nozzle,rho_prod
+    # I think they're fixed, but please doublecheck
     # pl_m(s,arr_plot)
     na = 19
+
+
 
     for aa in arr_m[na:]:
         # ic(aa[0])
@@ -312,6 +316,8 @@ def rdot_br(N,motor_data):
     # ic(arr_m[na:])
     ic(rdot)
     ic(Pc_Mpa2)
+    plt.plot(t,Pc_Mpa2);plt.grid(True)
+    plt.show()
     return Pc_Mpa
 
 def main():
