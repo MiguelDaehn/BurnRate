@@ -200,7 +200,7 @@ def rdot_br(N,motor_data):
     mp0 = Ng * Vg0 * rho_g
     k = properties_table[1][dp]
     par_AI = np.sqrt(k/ratto)*(2/(k+1))**((k+1)/2/(k-1))
-    ic(par_AI)
+    # ic(par_AI)
 
     s = np.linspace(0, tw0, N)
     incs = s[1]-s[0]
@@ -286,7 +286,7 @@ def rdot_br(N,motor_data):
 
         # ic(i,Pc_Mpa2[i],rdot[i])
         # ic(i,Pc_pa[i])
-        ic(i,mdot_nozzle[i],mdot_ger[i],AI[i])
+        # ic(i,mdot_nozzle[i],mdot_ger[i],AI[i])
         # ic(i,Pc_Mpa[i])
         # ic(i,t[i])
         # ic(i,rdot[i])
@@ -301,6 +301,7 @@ def rdot_br(N,motor_data):
                 #13
                 mdot_nozzle,m_stodot,m_sto,rho_prod,Pc_pa,Pc_Mpa,AI])
 
+
     # TODO:
     # fix the following:
     # rho_prod, Pc_pa,AI,rdot,m_sto,m_stodot,t,mdot_ger,mdot_nozzle,rho_prod
@@ -314,8 +315,9 @@ def rdot_br(N,motor_data):
         # ic(aa[0])
         pass
     # ic(arr_m[na:])
-    ic(rdot)
-    ic(Pc_Mpa2)
+    # ic(rdot)
+    # ic(Pc_Mpa2)
+    # Pc_Mpa2[-1] = patm
     plt.plot(t,Pc_Mpa2);plt.grid(True)
     plt.show()
     return Pc_Mpa

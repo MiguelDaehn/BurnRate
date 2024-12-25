@@ -89,8 +89,11 @@ def main():
         plt.legend();plt.grid()
         plt.show()
 
+
     if teste_pressure:
-        rdot_br(834, motor)
+        N = 834
+        N = 100*20
+        rdot_br(int(N), motor)
 
     return 0
 
