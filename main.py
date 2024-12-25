@@ -1,5 +1,6 @@
 import numpy as np
 
+from pressure import calculate_pressure_parameters
 from startup import *
 from burnrate import *
 
@@ -93,7 +94,7 @@ def main():
     if teste_pressure:
         N = 834
         N = 100*20
-        rdot_br(int(N), motor)
+        calculate_pressure_parameters(int(N), motor)
 
     return 0
 

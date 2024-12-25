@@ -1,6 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from numpy import sin, cos, tan, arcsin, arccos, arctan, pi
+from numpy import exp,sin, cos, tan, arcsin, arccos, arctan, pi
 import pandas as pd
 from icecream import ic
 import time
@@ -36,7 +36,7 @@ def err(x1, x2):
 
 def pl(x, y, lx='', ly='', tit='', labelf='', x0f=[0, None], y0f=[0, None], log=0):
     if log == 0:
-        # plt.plot(x, y, label=labelf)
+        plt.plot(x, y, label=labelf)
         pass
     else:
         plt.loglog(x, y, label=labelf)
