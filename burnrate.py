@@ -245,7 +245,7 @@ def rdot_br(N,motor_data):
     V_free[0] = Vc-Vg0
     m_grain[0] = rho_g*Vg0
     rdot[0] = rdp(prop,patm)
-
+    ic(incs)
     for i in range(1, N):
         DI[i] = DI[i-1]+csi*2*incs
         DE[i] = DE[i-1]-osi*2*incs
@@ -266,33 +266,32 @@ def rdot_br(N,motor_data):
         mdot_ger[i] =(m_grain[i-1]-m_grain[i])/(t[i]-t[i-1])
         m_stodot[i] =mdot_ger[i]-mdot_nozzle[i]
         m_sto[i] = m_stodot[i]*(t[i]-t[i-1])+m_sto[i-1]
-        if i ==6:
-            arr = [0,1,2,3,4,5]
-            # ic(m_sto[arr])
 
         rho_prod[i] = m_sto[i]/V_free[i]
         Pc_pa[i] += rho_prod[i]*ratto
         Pc_Mpa[i] = Pc_pa[i]/1e6
         # ic(t[i])
-        ic(i,rdot[i])
-        ic(i,m_sto[i])
-        ic(i,Pc_Mpa[i])
+        # ic(i,rdot[i])
+        # ic(i,m_sto[i])
+        # ic(i,Pc_Mpa[i])
 
 
         AI[i] =(Pc_Mpa[i-1]-patm)*1e6*A_star*par_AI
 
-
+    # ic(rdot)
     arr_plot = ar([rho_prod,Pc_pa,AI])
-    arr_m = ar([s,TW,DI,DE,L,A_duct,A_duct_t,rdot,t,V_g,V_free,m_grain,mdot_ger,mdot_nozzle,m_stodot,m_sto,rho_prod,Pc_pa,Pc_Mpa,AI])
+    arr_m = ar([s,TW,DI,DE,L,A_duct,A_duct_t,rdot,
+                t,V_g,V_free,m_grain, mdot_ger,mdot_nozzle,m_stodot,m_sto,rho_prod,Pc_pa,Pc_Mpa,AI])
 
     # TODO:
     # Consertar:
-    # rho_prod, Pc_pa,AI
+    # rho_prod, Pc_pa,AI,rdot,m_sto,m_stodot,t,mdot_ger,mdot_nozzle
     # pl_m(s,arr_plot)
+    na = 12
 
-    for aa in arr_m:
-        ic(aa[1])
-    ic(arr_m)
+    for aa in arr_m[na:]:
+        ic(aa[0])
+    ic(arr_m[na:])
     return Pc_Mpa
 
 def main():

@@ -97,7 +97,7 @@ def main():
         plt.show()
 
     if teste_pressure:
-        rdot_br(835, motor)
+        rdot_br(834, motor)
 
     return 0
 
