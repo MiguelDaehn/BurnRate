@@ -246,15 +246,22 @@ def rdot_br(N,motor_data):
     V_free[0] = Vc-Vg0
     m_grain[0] = rho_g*Vg0
     rdot[0] = rdp(prop,patm)
+    Pc_Mpa2[0] = patm
+
     # ic(incs)
     for i in range(1, N):
+        Pc_Mpa2[i] = Pc_Mpa[i - 1]
         DI[i] = DI[i-1]+csi*2*incs
         DE[i] = DE[i-1]-osi*2*incs
         L[i] = L[i-1]-Ng*esi*2*incs
         TW[i] = (DE[i]-DI[i])/2
         A_duct[i] = (pi/4)*De**2 - (pi/4)*(DE[i]**2-DI[i]**2)
         A_duct_t[i] = A_duct[i]/At
-        rdot[i] = rdp(prop,Pc_Mpa[i])
+
+        #Above this line, all are functional
+
+        rdot[i] = rdp(prop,Pc_Mpa2[i])
+        ic(i,Pc_Mpa2[i],rdot[i])
         t[i] = incs / rdot[i]+t[i-1]
 
         V_g[i] = ((pi/4)*(DE[i]**2-DI[i]**2)*L[i])/(1000**3)
@@ -277,7 +284,7 @@ def rdot_br(N,motor_data):
         rho_prod[i] = m_sto[i]/V_free[i]
         Pc_pa[i] += rho_prod[i]*ratto
         Pc_Mpa[i] = Pc_pa[i]/1e6
-        Pc_Mpa2[i] = Pc_Mpa[i-1]
+
         # ic(t[i])
         # ic(i,rdot[i])
         # ic(i,m_sto[i])
@@ -300,9 +307,11 @@ def rdot_br(N,motor_data):
     na = 19
 
     for aa in arr_m[na:]:
-        ic(aa[0])
-    ic(arr_m[na:])
-    ic(m_sto)
+        # ic(aa[0])
+        pass
+    # ic(arr_m[na:])
+    ic(rdot)
+    ic(Pc_Mpa2)
     return Pc_Mpa
 
 def main():
