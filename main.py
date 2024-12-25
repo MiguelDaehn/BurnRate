@@ -79,18 +79,11 @@ def main():
            y0f=[0.95 * min(BR[np.where(BR>0)]), 1.05 * max(BR[np.where(BR<40)])])
     if test_BRmultiple:
         Prange = np.linspace(0.12,10,10000)
+        arrstr = ar(['knsb','knsu'])
 
-        Rd1 = ar([rdp('knsb', p) for p in Prange])
-        Rd2 = ar([rdp('knsu', p) for p in Prange])
-        Rd3 = ar([rdp('kndx', p) for p in Prange])
-        Rd4 = ar([rdp('kner', p) for p in Prange])
-        Rd5 = ar([rdp('knpsb', p) for p in Prange])
-        Rd6 = ar([rdp('knfr', p) for p in Prange])
-
-        Rd = ar([Rd1,Rd2,Rd3,Rd4,Rd5,Rd6])
-
-        for rd in Rd:
-            plt.plot(Prange,rd)
+        for rd in arrstr:
+            Rd = ar([rdp(rd,p) for p in Prange])
+            plt.plot(Prange,Rd)
 
         plt.xlabel('Pressure [MPa]');plt.ylabel('R_dot [mm/s]');plt.title('Rd Values vs Pressure')
         plt.legend();plt.grid()

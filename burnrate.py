@@ -245,7 +245,7 @@ def rdot_br(N,motor_data):
     V_free[0] = Vc-Vg0
     m_grain[0] = rho_g*Vg0
     rdot[0] = rdp(prop,patm)
-    ic(incs)
+    # ic(incs)
     for i in range(1, N):
         DI[i] = DI[i-1]+csi*2*incs
         DE[i] = DE[i-1]-osi*2*incs
@@ -254,7 +254,7 @@ def rdot_br(N,motor_data):
         A_duct[i] = (pi/4)*De**2 - (pi/4)*(DE[i]**2-DI[i]**2)
         A_duct_t[i] = A_duct[i]/At
         rdot[i] = rdp(prop,Pc_Mpa[i])
-        t[i] = incs / rdot[i-1]+t[i-1]
+        t[i] = incs / rdot[i]+t[i-1]
 
         V_g[i] = ((pi/4)*(DE[i]**2-DI[i]**2)*L[i])/(1000**3)
         V_free[i] -= V_g[i]
