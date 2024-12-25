@@ -185,6 +185,8 @@ def rdot_br(N,motor_data):
     ratto = rat*to
     # ic(ratto)
 
+    pbd = 0
+
     tw0 = (De-Di) / 2
     dp = dict_prop[prop]
     rhoideal = properties_table[0][dp]
@@ -251,27 +253,31 @@ def rdot_br(N,motor_data):
         TW[i] = (DE[i]-DI[i])/2
         A_duct[i] = (pi/4)*De**2 - (pi/4)*(DE[i]**2-DI[i]**2)
         A_duct_t[i] = A_duct[i]/At
-
+        rdot[i] = rdp(prop,Pc_Mpa[i])
         t[i] = incs / rdot[i-1]+t[i-1]
 
         V_g[i] = ((pi/4)*(DE[i]**2-DI[i]**2)*L[i])/(1000**3)
         V_free[i] -= V_g[i]
         m_grain[i] = rho_g*(V_g[i])
-        # if m_grain[i] > AI[i]:
-        #     mdot_nozzle[i] =
+        if (mdot_ger[i] < AI[i] and Pc_Mpa[i-1]>pbd)or(mdot_ger[i] < AI[i]):
+            mdot_nozzle[i] =AI[i]
+        else:
+            mdot_nozzle[i] = 0
         mdot_ger[i] =(m_grain[i-1]-m_grain[i])/(t[i]-t[i-1])
         m_stodot[i] =mdot_ger[i]-mdot_nozzle[i]
         m_sto[i] = m_stodot[i]*(t[i]-t[i-1])+m_sto[i-1]
-        ic(m_sto[0:5])
+        if i ==6:
+            arr = [0,1,2,3,4,5]
+            # ic(m_sto[arr])
+
         rho_prod[i] = m_sto[i]/V_free[i]
-        # ic(m_sto[i] / V_free[i])
         Pc_pa[i] += rho_prod[i]*ratto
         Pc_Mpa[i] = Pc_pa[i]/1e6
-        # ic(i,Pc_Mpa[i])
-        try:
-            rdot[i] = rdp(prop,Pc_Mpa[i])
-        except:
-            ic(m_sto[i]/V_free[i])
+        # ic(t[i])
+        ic(i,rdot[i])
+        ic(i,m_sto[i])
+        ic(i,Pc_Mpa[i])
+
 
         AI[i] =(Pc_Mpa[i-1]-patm)*1e6*A_star*par_AI
 
