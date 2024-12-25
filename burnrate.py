@@ -199,8 +199,8 @@ def rdot_br(N,motor_data):
     Vg0 = ((pi/4)*(De**2-Di**2)*L0*Ng)/1000**3
     mp0 = Ng * Vg0 * rho_g
     k = properties_table[1][dp]
-    # ic(k)
     par_AI = np.sqrt(k/ratto)*(2/(k+1))**((k+1)/2/(k-1))
+    ic(par_AI)
 
     s = np.linspace(0, tw0, N)
     incs = s[1]-s[0]
@@ -220,6 +220,7 @@ def rdot_br(N,motor_data):
     V_g = np.zeros_like(s)
     V_free = np.ones_like(s)*Vc
     Pc_Mpa = np.ones_like(s)*patm
+    Pc_Mpa2 = np.zeros_like(s)
     mdot_nozzle = np.zeros_like(s)
     mdot_ger = np.zeros_like(s)
     m_grain = np.zeros_like(s)
@@ -259,10 +260,16 @@ def rdot_br(N,motor_data):
         V_g[i] = ((pi/4)*(DE[i]**2-DI[i]**2)*L[i])/(1000**3)
         V_free[i] -= V_g[i]
         m_grain[i] = rho_g*(V_g[i])
-        if (mdot_ger[i] < AI[i] and Pc_Mpa[i-1]>pbd)or(mdot_ger[i] < AI[i]):
-            mdot_nozzle[i] =AI[i]
+        # (V29<AI29,IF(AB28>pbd,AI29,0),AI29)
+
+        if (mdot_ger[i] < AI[i]):
+            if Pc_Mpa[i-1]>pbd:
+                mdot_nozzle[i] =AI[i]
+            else:
+                mdot_nozzle[i] = 0
         else:
-            mdot_nozzle[i] = 0
+            mdot_nozzle[i] = AI[i]
+
         mdot_ger[i] =(m_grain[i-1]-m_grain[i])/(t[i]-t[i-1])
         m_stodot[i] =mdot_ger[i]-mdot_nozzle[i]
         m_sto[i] = m_stodot[i]*(t[i]-t[i-1])+m_sto[i-1]
@@ -270,28 +277,32 @@ def rdot_br(N,motor_data):
         rho_prod[i] = m_sto[i]/V_free[i]
         Pc_pa[i] += rho_prod[i]*ratto
         Pc_Mpa[i] = Pc_pa[i]/1e6
+        Pc_Mpa2[i] = Pc_Mpa[i-1]
         # ic(t[i])
         # ic(i,rdot[i])
         # ic(i,m_sto[i])
         # ic(i,Pc_Mpa[i])
 
 
-        AI[i] =(Pc_Mpa[i-1]-patm)*1e6*A_star*par_AI
+        AI[i] =(Pc_Mpa2[i]-patm)*1e6*A_star*par_AI
 
     # ic(rdot)
     arr_plot = ar([rho_prod,Pc_pa,AI])
     arr_m = ar([s,TW,DI,DE,L,A_duct,A_duct_t,rdot,
-                t,V_g,V_free,m_grain, mdot_ger,mdot_nozzle,m_stodot,m_sto,rho_prod,Pc_pa,Pc_Mpa,AI])
+                t,V_g,V_free,m_grain,mdot_ger,
+                #13
+                mdot_nozzle,m_stodot,m_sto,rho_prod,Pc_pa,Pc_Mpa,AI])
 
     # TODO:
     # Consertar:
-    # rho_prod, Pc_pa,AI,rdot,m_sto,m_stodot,t,mdot_ger,mdot_nozzle
+    # rho_prod, Pc_pa,AI,rdot,m_sto,m_stodot,t,mdot_ger,mdot_nozzle,rho_prod
     # pl_m(s,arr_plot)
-    na = 12
+    na = 19
 
     for aa in arr_m[na:]:
         ic(aa[0])
     ic(arr_m[na:])
+    ic(m_sto)
     return Pc_Mpa
 
 def main():
