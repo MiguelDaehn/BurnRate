@@ -1,6 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from numpy import exp,sin, cos, tan, arcsin, arccos, arctan, pi
+from numpy import exp,sin, cos, tan, arcsin, arccos, arctan, pi,where
 import pandas as pd
 from icecream import ic
 import time
@@ -8,6 +8,8 @@ from scipy.optimize import curve_fit
 
 Ru = 8314.34 #kg/mol-K
 patm = 0.101325 #MPa
+patm_pa = patm*1e6
+g0 = 9.80665
 def main():
     return 0
 
@@ -50,6 +52,11 @@ def pl(x, y, lx='', ly='', tit='', labelf='', x0f=[0, None], y0f=[0, None], log=
     plt.show()
     return
 
+def ifxl(cond,v_pos,v_neg):
+    if cond:
+        return v_pos
+    else:
+        return v_neg
 
 dict_prop = {'kndx': 0, 'knsb': 1, 'knsu':2,'kner': 3, 'knmn': 4, 'knfr':5,'knpsb': 6}
 # rho_prop = {'knsu': 1.889, 'knsb': 1.841, 'kner': 1.820, 'kndx': 1.879, 'knmn': 1.854, 'knpsb': 1.923}

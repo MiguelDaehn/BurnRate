@@ -5,12 +5,14 @@ from burnrate import *
 
 def calculate_pressure_parameters(N, motor_data):
     prop = motor_data[0].astype(str)
+
     Dt = motor_data[1].astype(float)
     Rho_pct = motor_data[2].astype(float)
     Ng = motor_data[3].astype(float)
     L0 = motor_data[4].astype(float)
     De = motor_data[5].astype(float)
     Di = motor_data[6].astype(float)
+
     p_min = motor_data[7].astype(float)
     p_max = motor_data[8].astype(float)
 
@@ -33,7 +35,9 @@ def calculate_pressure_parameters(N, motor_data):
     to = nuc * properties_table[3][dp]
     ratto = rat * to
     # ic(ratto)
-
+    k = properties_table[1][dp]
+    c_star = np.sqrt(ratto/k*(((k+1)/2)**((k+1)/(k-1))))
+    ic(c_star)
     pbd = 0
 
     tw0 = (De - Di) / 2
@@ -47,7 +51,6 @@ def calculate_pressure_parameters(N, motor_data):
     A_star = At / (1e6)
     Vg0 = ((pi / 4) * (De ** 2 - Di ** 2) * L0 * Ng) / 1000 ** 3
     mp0 = Ng * Vg0 * rho_g
-    k = properties_table[1][dp]
     par_AI = np.sqrt(k / ratto) * (2 / (k + 1)) ** ((k + 1) / 2 / (k - 1))
     # ic(par_AI)
 
@@ -115,6 +118,8 @@ def calculate_pressure_parameters(N, motor_data):
         t[i] = incs / rdot[i] + t[i - 1]
 
         AI[i] = (Pc_Mpa2[i] - patm) * 1e6 * A_star * par_AI
+
+        #TODO: Change this implementation to the ifxl() function for readability. Or don't.
         if (mdot_ger[i] < AI[i]):
             if Pc_Mpa[i - 1] > pbd:
                 mdot_nozzle[i] = AI[i]
@@ -139,23 +144,46 @@ def calculate_pressure_parameters(N, motor_data):
         # ic(i,rdot[i])
         # ic(i,m_sto[i])
 
+    t_inc = 0.0001
+    tbout = t[-1]
     pbout = Pc_Mpa[-1]
+    ic(tbout,pbout,ratto,A_star,Vc,c_star)
+    # breakpoint()
+
+    err_MPa = 1.0
+    n = 1000
+
+
+    # ic(Pc_Mpa[-1])
+
+    start = time.time()
+    while Pc_Mpa[-1]>=patm:
+
+        t = np.append(t, t[-1]+t_inc)
+        Pc_pos = pbout*np.exp(-ratto*A_star*(t[-1]-tbout)/(Vc*c_star))
+        Pc_Mpa = np.append(Pc_Mpa,Pc_pos)
+
+        finish = time.time()
+        if finish - start>1:
+            break
+
+    r_avg = np.average(rdot)
 
 
 
     arr_m = ar([s, TW, DI, DE, L, A_duct, A_duct_t, rdot,
-                t, V_g, V_free, m_grain, mdot_ger,
+                V_g, V_free, m_grain, mdot_ger,
                 # 13
-                mdot_nozzle, m_stodot, m_sto, rho_prod, Pc_pa, Pc_Mpa, AI])
+                mdot_nozzle, m_stodot, m_sto, rho_prod, Pc_pa, AI])
 
 
+    # TODO: fix the following:
+    #  rho_prod, Pc_pa,AI,rdot,m_sto,m_stodot,t,mdot_ger,mdot_nozzle,rho_prod
+    #  I think they're fixed, but please doublecheck
 
 
-    # TODO:
-    # fix the following:
-    # rho_prod, Pc_pa,AI,rdot,m_sto,m_stodot,t,mdot_ger,mdot_nozzle,rho_prod
-    # I think they're fixed, but please doublecheck
-    # pl_m(s,arr_plot)
+    # Debugging
+
     na = 19
 
     for aa in arr_m[na:]:
@@ -169,10 +197,8 @@ def calculate_pressure_parameters(N, motor_data):
 
     # Plotting pressure x time
 
-    pl(t, Pc_Mpa2, 'Tempo [s]', 'Pressão na Câmara [MPa]',
-       'Pressão na câmara em função do tempo','Pressão',[-0.05,None],[0,None])
 
-    return Pc_Mpa
+    return t,Pc_Mpa,k,tbout,r_avg,m_grain[0]
 
 
 

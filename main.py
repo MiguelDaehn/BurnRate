@@ -3,6 +3,8 @@ import numpy as np
 from pressure import calculate_pressure_parameters
 from startup import *
 from burnrate import *
+from thrust import calculate_thrust
+
 
 #TODO:
 # 1:
@@ -17,11 +19,12 @@ from burnrate import *
 
 def main():
 
-    testeNakka          = False
-    testeRand           = False
+    test_Nakka          = False
+    test_Rand           = False
     test_BRfrompressure = False
     test_BRmultiple     = False
-    teste_pressure      = True
+    test_pressure       = False
+    test_thrust         = True
 
     id_file = "q2OM"
 
@@ -31,9 +34,9 @@ def main():
     p_max = 4.3
 
     #TODO:
-    #Add a function that takes initial parameters such as a Diameter
-    #And returns ALL needed parameters that can be calculated quickly
-    #In order to declutter other functions (having calculations in them that don't serve the main purpose)
+    # Add a function that takes initial parameters such as a Diametere
+    # And returns ALL needed parameters that can be calculated quickly
+    # In order to declutter other functions (having calculations in them that don't serve the main purpose)
 
     prop = 'knsb'
     Dt = 9.659
@@ -44,7 +47,7 @@ def main():
     Di = 25.0
 
 
-    if testeNakka:
+    if test_Nakka:
         prop = 'knpsb'
         dp = dict_prop[prop]
         rhoideal = ic(properties_table[0][dp])
@@ -55,7 +58,7 @@ def main():
         L = 65.0
         De = 43.1
         Di = 13.88
-    elif(testeRand):
+    elif(test_Rand):
         prop = 'knpsb'
         dp = dict_prop[prop]
         rhoideal = ic(properties_table[0][dp])
@@ -90,14 +93,31 @@ def main():
         plt.legend();plt.grid()
         plt.show()
 
+    # N = 834
+    N = 100*20
+    if test_pressure:
+        t, Pc, k, tbout, r_avg, m_grain0 = calculate_pressure_parameters(int(N), motor)
 
-    if teste_pressure:
-        N = 834
-        N = 100*20
-        calculate_pressure_parameters(int(N), motor)
+    if test_thrust:
+        F,Pc,t = calculate_thrust(N,motor,0.85,6.3)
+        ic(F,Pc,t)
+        pl(t, Pc, 'Tempo [s]', 'Pressão na Câmara [MPa]',
+           'Pressão na câmara em função do tempo', 'Pressão', [-0.05, None], [0, None])
+
+
+        pl(t, F, 'Tempo [s]', 'Empuxo [N]',
+           'Empuxo em função do tempo', 'F',[-0.05, None], [0, None])
 
     return 0
 
 
 if __name__ == '__main__':
     main()
+    print('\n\nPlease read the improvement suggestions at the end of the main.py script.\n\n')
+
+    # TODO:
+    #  1:
+    #  Change the updating of the values in the for loops from directly altering the formula
+    #  to using lambda functions, to keep it neat.
+    #  2:
+    #  Add SRM's calculation of optimal thoaat diameter for the pressure.
