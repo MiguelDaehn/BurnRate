@@ -23,7 +23,6 @@ def Delta_s(At, Ab, Pc, rho, cstar, delta_t):
 def func_powerlaw(x, n, a):
     return x ** n * a
 
-
 target_func = func_powerlaw
 
 
@@ -35,8 +34,8 @@ def BR_from_pressure(id, motor_data):
     delta_t = np.append(delta_t, delta_t[-1])
     dt_avg = np.average(delta_t)
 
-    p_min = motor_data[7].astype(float)
-    p_max = motor_data[8].astype(float)
+    p_min = motor_data[18].astype(float)
+    p_max = motor_data[19].astype(float)
     # p_min *= 1e6
     # p_max *= 1e6
 
@@ -47,14 +46,14 @@ def BR_from_pressure(id, motor_data):
     L = motor_data[4].astype(float)
     De = motor_data[5].astype(float)
     Di = motor_data[6].astype(float)
-    w0 = (De - Di) / 2
-    dp = dict_prop[prop]
-    rhoideal = properties_table[0][dp]
-    rho_g = rho_pct * rhoideal
+    w0 = motor_data[7].astype(float)
+    dp = motor_data[11].astype(int)
 
-    At = pi * (Dt / 2) ** 2
-    Vg = pi * ((De / 2 / 10) ** 2 - (Di / 2 / 10) ** 2) * (L / 10)
-    mp = Ng * Vg * rho_g
+    rhoideal = motor_data[12].astype(float)
+    rho_g = motor_data[13].astype(float)
+    At = motor_data[16].astype(float)
+    mp = motor_data[18].astype(float)
+
     Psum = np.sum(Pc)
     cstar = ((At / mp) * Psum * dt_avg) / 1000
     err_w0 = 1.0
@@ -109,7 +108,11 @@ def BR_from_pressure(id, motor_data):
 
     target_func = func_powerlaw
 
-    pars, sol0 = curve_fit(func_powerlaw, Pc, ds_dt, p0=np.asarray([4, 0.5]),maxfev=4000)
+    # TODO: Need to implement a way of automatically suggesting parameters! This may lead to incorrect
+    #  readings in the future!
+    p0min = 4
+    p0max = 0.5
+    pars, sol0 = curve_fit(func_powerlaw, Pc, ds_dt, p0=np.asarray([p0min, p0max]),maxfev=4000)
     n, a = pars
     print(f'a: {a}, \nn: {n}')
     plt.scatter(Pc, ds_dt, marker='*', color='red')

@@ -6,6 +6,19 @@ from motors import *
 
 
 
+# TODO:
+#  0:
+#  Add a function that takes initial parameters such as a Diameter
+#  And returns ALL needed parameters that can be calculated quickly
+#  In order to declutter other functions (having calculations in them that don't serve the main purpose)
+#  1:
+#  Change the updating of the values in the for loops from directly altering the formula
+#  to using lambda functions, to keep it neat.
+#  2:
+#  Add SRM's calculation of optimal thoaat diameter for the pressure.
+#  3:
+#  Manipulate 'nuc' to reach the calculated value of c*
+#  if calculating from experimental pressure values
 
 def main():
 
@@ -21,10 +34,6 @@ def main():
     p_min = 3.85
     p_max = 4.3
 
-    # TODO:
-    # Add a function that takes initial parameters such as a Diameter
-    # And returns ALL needed parameters that can be calculated quickly
-    # In order to declutter other functions (having calculations in them that don't serve the main purpose)
 
 
 
@@ -71,14 +80,5 @@ def main():
 
 if __name__ == '__main__':
     main()
-    print('\n\nPlease read the improvement suggestions at the end of the main.py script.\n\n')
+    print('\n\nPlease read the improvement suggestions at the beginning of the main.py script.\n\n')
 
-    # TODO:
-    #  1:
-    #  Change the updating of the values in the for loops from directly altering the formula
-    #  to using lambda functions, to keep it neat.
-    #  2:
-    #  Add SRM's calculation of optimal thoaat diameter for the pressure.
-    #  3:
-    #  Manipulate 'nuc' to reach the calculated value of c*
-    #  if calculating from experimental pressure values
