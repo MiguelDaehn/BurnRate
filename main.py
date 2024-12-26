@@ -14,11 +14,17 @@ from thrust import calculate_thrust
 # log scale graph not working. is it because the graph is in MPa? shouldn't be, right?
 # 3:
 # fit the power law https://www.youtube.com/watch?v=wujirumjHxU
+# 4:
+# Add a function that takes initial parameters such as a Diametere
+# And returns ALL needed parameters that can be calculated quickly
+# In order to declutter other functions (having calculations in them that don't serve the main purpose)
+# 5:
+# Kn depends on pressure. look at tables to the right of the first page of SRM
+# Kn of a certain pressure (our desired MEOP) is calculated. Kn = Ab/At -> At = Kn_max * Ab_max
 
 
 def main():
     test_Nakka = False
-    test_Rand = False
     test_BRfrompressure = True
     test_BRmultiple = False
     test_pressure = False
@@ -29,10 +35,6 @@ def main():
     p_min = 3.85
     p_max = 4.3
 
-    # TODO:
-    # Add a function that takes initial parameters such as a Diametere
-    # And returns ALL needed parameters that can be calculated quickly
-    # In order to declutter other functions (having calculations in them that don't serve the main purpose)
 
     prop = 'knsb'
     Dt = 9.659
@@ -44,26 +46,16 @@ def main():
 
     if test_Nakka:
         prop = 'knpsb'
-        dp = dict_prop[prop]
-        rhoideal = ic(properties_table[0][dp])
         At = 81.1
         Dt = np.sqrt(At / (pi / 4)) * 10
-        Rho_pct = 1.912 / rhoideal
+        Rho_pct = 1.912 / 1.923
         Ng = 2
         L = 65.0
         De = 43.1
         Di = 13.88
-    elif (test_Rand):
-        prop = 'knpsb'
-        dp = dict_prop[prop]
-        rhoideal = ic(properties_table[0][dp])
-        At = 81.1
-        Dt = np.sqrt(At / (pi / 4)) * 10
-        Rho_pct = 1.912 / rhoideal
-        Ng = 2
-        L = 65.0
-        De = 50
-        Di = 4
+
+    dp = dict_prop[prop]
+    rhoideal = ic(properties_table[0][dp])
 
     csi, esi, osi = [1, 1, 0]
     motor = ar([prop, Dt, Rho_pct, Ng, L, De, Di, p_min, p_max, csi, esi, osi])
