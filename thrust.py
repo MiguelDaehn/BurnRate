@@ -92,8 +92,8 @@ def calculate_thrust(N,motor_data,eta_noz,Ae_At):
 
     return F,Pc_MPa,t
 
-def thrust_pressure(N,id_motor,Ae_At):
-    motor = mot(id_motor)
+def thrust_pressure(N,motor,Ae_At):
+    # motor = mot(id_motor)
     F, Pc, t = calculate_thrust(N, motor, 0.85, Ae_At)
     # ic(F, Pc, t)
     pl(t, Pc, 'Tempo [s]', 'Pressão na Câmara [MPa]',

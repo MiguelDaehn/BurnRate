@@ -50,6 +50,7 @@ def mot(id_motor):
         Di = 25.0
         p_min = 0
         p_max = 10
+        csi, esi, osi = [1, 1, 0]
 
     if id_motor == 2:
         prop = 'knpsb'
@@ -62,6 +63,7 @@ def mot(id_motor):
         Di = 13.88
         p_min = 0
         p_max = 10
+        csi, esi, osi = [1, 1, 0]
 
     if id_motor == 3:
         prop = 'knsb'
@@ -73,11 +75,12 @@ def mot(id_motor):
         Di = 25.0
         p_min = 0
         p_max = 10
+        csi, esi, osi = [1, 1, 0]
 
     dp = dict_prop[prop]
     rhoideal = properties_table[0][dp]
 
-    csi, esi, osi = [1, 1, 0]
+
     motor_data = ar([prop, Dt, Rho_pct, Ng, L, De, Di, p_min, p_max, csi, esi, osi])
 
     return motor_data

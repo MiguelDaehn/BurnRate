@@ -47,7 +47,7 @@ def main():
     # test_BR_from_pressure(id_file,id_motor,p_min=3.5,p_max=4.5)
     test_br_multiple()
     t, Pc, k, tbout, r_avg, m_grain0 = calculate_pressure_parameters(int(N), motor)
-    thrust_pressure(N,id_motor,6.278)
+    thrust_pressure(N,motor,6.278)
 
 
 
