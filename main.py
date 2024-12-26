@@ -73,8 +73,12 @@ def main():
     # id_prop = 4
     # plt_m_grains(N,id_prop,array_L,motor,eta_noz=0.85,AeAt=6.3)
 
-    array_AeAt = np.linspace(1, 2, 100)
-    plt_AeAt(N, array_AeAt, motor, eta_noz=0.85)
+    # array_AeAt = np.linspace(1, 2, 100)
+    # plt_AeAt(N, array_AeAt, motor, eta_noz=0.85)
+
+    array_Di = np.linspace(5,35,100)
+    id_prop = 6
+    plt_m_grains(N,id_prop,array_Di,motor,eta_noz=0.85,AeAt=6.3)
 
 
     # Test functions

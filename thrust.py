@@ -96,7 +96,8 @@ def calculate_thrust(N,motor_data,eta_noz,Ae_At):
     AeAt_opt_pavg   = np.average(AeAt_opt)
     Cf_max          = max(Cf)
 
-    ic(F_max,It,AeAt_opt_pmax)
+    # TODO: remember to use ic() to figure out what causes the surge in CF in certain Ae/At values.
+    # ic(F_max,It,AeAt_opt_pmax)
 
     return F,Pc_MPa,t,Cf
 
