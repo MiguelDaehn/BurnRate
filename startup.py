@@ -78,9 +78,10 @@ def pl(x, y, lx='', ly='', tit='', labelf='', x0f=[0, None], y0f=[0, None], log=
     plt.show()
     return
 
-def motor(motor_data):
-
-    return motor_data
+def pl_m(x,y_arr):
+    for row in y_arr:
+        pl(x,row,x0f=[None, None], y0f=[None, None])
+    return 0
 
 
 def ifxl(cond,v_pos,v_neg):
@@ -119,7 +120,7 @@ properties_table = np.loadtxt(properties_path, delimiter=',', skiprows=1, usecol
 
 
 def main():
-    ic(find_M2(6.278, 1.137))
+    # ic(find_M2(6.278, 1.137))
     return 0
 
 

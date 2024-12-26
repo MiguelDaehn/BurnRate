@@ -88,9 +88,21 @@ def calculate_thrust(N,motor_data,eta_noz,Ae_At):
     AeAt_opt_pavg   = np.average(AeAt_opt)
     Cf_max          = max(Cf)
 
-    ic(F_max,It)
+    # ic(F_max,It)
 
     return F,Pc_MPa,t
+
+def thrust_pressure(N,id_motor,Ae_At):
+    motor = mot(id_motor)
+    F, Pc, t = calculate_thrust(N, motor, 0.85, Ae_At)
+    # ic(F, Pc, t)
+    pl(t, Pc, 'Tempo [s]', 'Pressão na Câmara [MPa]',
+       'Pressão na câmara em função do tempo', 'Pressão', [-0.05, None], [0, None])
+
+    pl(t, F, 'Tempo [s]', 'Empuxo [N]',
+       'Empuxo em função do tempo', 'F', [-0.05, None], [0, None])
+    return F, Pc, t
+
 
 def main():
 

@@ -37,7 +37,7 @@ def calculate_pressure_parameters(N, motor_data):
     # ic(ratto)
     k = properties_table[1][dp]
     c_star = np.sqrt(ratto/k*(((k+1)/2)**((k+1)/(k-1))))
-    ic(c_star)
+    # ic(c_star)
     pbd = 0
 
     tw0 = (De - Di) / 2
@@ -147,7 +147,7 @@ def calculate_pressure_parameters(N, motor_data):
     t_inc = 0.0001
     tbout = t[-1]
     pbout = Pc_Mpa[-1]
-    ic(tbout,pbout,ratto,A_star,Vc,c_star)
+    # ic(tbout,pbout,ratto,A_star,Vc,c_star)
     # breakpoint()
 
     err_MPa = 1.0

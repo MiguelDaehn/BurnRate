@@ -1,7 +1,5 @@
-import numpy as np
-
 from startup import *
-
+from motor import *
 
 def Ab_f(N, De, Di0, L, s):
     A_b = pi * N * (0.5 * (De ** 2 - (Di0 + 2 * s) ** 2) + (L - 2 * s) * (Di0 + 2 * s))
@@ -149,11 +147,29 @@ def rdp(prop, P):
 
     return result
 
-def pl_m(x,y_arr):
-    for row in y_arr:
-        pl(x,row,x0f=[None, None], y0f=[None, None])
-    return 0
 
+
+def test_BR_from_pressure(id_file,id_motor,p_min=3.5,p_max=4.5):
+    motor = mot(id_motor)
+    Pc, BR, pars = BR_from_pressure(id_file, motor)
+    plt.plot(Pc, target_func(Pc, *pars), '--')
+    pl(Pc, BR, 'Pressão na Câmara [MPa]', 'Burn Rate [mm/s]',
+       'Taxa de regressão em função da pressão',
+       labelf=f'{pars[1]}·P^{pars[0]}', log=0,
+       x0f=[0.95 * p_min, 1.0 * p_max],
+       y0f=[0.95 * min(BR[np.where(BR > 0)]), 1.05 * max(BR[np.where(BR < 40)])])
+
+def test_br_multiple(arr_str=ar(['knsb', 'knsu'])):
+    Prange = np.linspace(0.12, 10, 10000)
+    arrstr = ar(arr_str)
+
+    for rd in arrstr:
+        Rd = ar([rdp(rd, p) for p in Prange])
+        plt.plot(Prange, Rd)
+
+    plt.xlabel('Pressure [MPa]');plt.ylabel('R_dot [mm/s]');plt.title('Rd Values vs Pressure')
+    plt.legend();plt.grid()
+    plt.show()
 
 
 def main():
