@@ -106,6 +106,9 @@ def find_M2(AeAt,k):
 
     return val
 
+
+
+
 dict_prop = {'kndx': 0, 'knsb': 1, 'knsu':2,'kner': 3, 'knmn': 4, 'knfr':5,'knpsb': 6}
 
 

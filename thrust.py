@@ -9,11 +9,17 @@ def calculate_thrust(N,motor_data,eta_noz,Ae_At):
     # Calculating Time [s] and Chamber Pressure [MPa]
 
     # TODO:
+    #  1:
     #  Insert multiple operating modes so that you can either insert t, Pc_MPa directly
     #  or have it calculated from motor_data. Only needed in case it begins taking too long
     #  Have a 'lobby function' that checks the format of the input data (is it pressure and time or
     #  motor data?) and then calls the function that calculates thrust
     #  If you're gonna, say, plot 10 thrust curves one atop the other, it's gonna begin to cost time.
+    #  2:
+    #  For some reason, some values of epsilon (Ae/At) lead to surges in the value of CF, that
+    #  leads to a surge in the value of thrust. Possibly linked to the calculation of P2, I think that's
+    #  what's causing P2 then Cf then Thrust to boom
+
 
     t,Pc_MPa,k,tbout,r_avg,m_grain0 = calculate_pressure_parameters(N, motor_data)
     Pc_Pa = Pc_MPa*1e6
@@ -74,7 +80,9 @@ def calculate_thrust(N,motor_data,eta_noz,Ae_At):
     for i in range(Np):
         P2_Pa[i]    = ifxl(P2(Pc_Pa[i])<patm_pa,patm_pa,P2(Pc_Pa[i]))
         cf          = CF(P2_Pa[i],Pc_Pa[i])
-        Cf[i]       = np.nan_to_num(cf)
+        # Cf[i]       = np.nan_to_num(cf)
+        Cf[i]       = np.nan_to_num(cf,posinf =0, neginf =0)
+
         F[i]        = FT(Cf[i],Pc_Pa[i])
         It_arr[i]   = IT(F[i-1],F[i],t[i-1],t[i])
 
@@ -83,18 +91,18 @@ def calculate_thrust(N,motor_data,eta_noz,Ae_At):
     F_max           = max(F)
     It              = np.sum(It_arr)
     Isp             = It/(g0*m_grain0)
-    id_Pcmax        = where(max(Pc_Pa))
+    id_Pcmax        = where(max(Pc_Pa))[0]
     AeAt_opt_pmax   = AeAt_opt[id_Pcmax]
     AeAt_opt_pavg   = np.average(AeAt_opt)
     Cf_max          = max(Cf)
 
-    # ic(F_max,It)
+    ic(F_max,It,AeAt_opt_pmax)
 
-    return F,Pc_MPa,t
+    return F,Pc_MPa,t,Cf
 
 def thrust_pressure(N,motor,Ae_At):
     # motor = mot(id_motor)
-    F, Pc, t = calculate_thrust(N, motor, 0.85, Ae_At)
+    F, Pc, t,Cf = calculate_thrust(N, motor, 0.85, Ae_At)
     # ic(F, Pc, t)
     pl(t, Pc, 'Tempo [s]', 'Pressão na Câmara [MPa]',
        'Pressão na câmara em função do tempo', 'Pressão', [-0.05, None], [0, None])

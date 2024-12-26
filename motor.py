@@ -3,7 +3,6 @@ from startup import *
 
 def mot(id_motor):
 
-
     if id_motor == 0:
         prop = input('Propellant (KNSB,KNSU...): ').lower()
         Dt = float(input('Throat diameter [mm]: '))
@@ -40,7 +39,7 @@ def mot(id_motor):
             p_min = 0
             p_max = 10
 
-    if id_motor == 1:
+    elif id_motor == 1:
         prop = 'knsb'
         Dt = 9.659
         Rho_pct = 0.95
@@ -52,7 +51,7 @@ def mot(id_motor):
         p_max = 10
         csi, esi, osi = [1, 1, 0]
 
-    if id_motor == 2:
+    elif id_motor == 2:
         prop = 'knpsb'
         At = 81.1
         Dt = np.sqrt(At / (pi / 4)) * 10
@@ -65,7 +64,7 @@ def mot(id_motor):
         p_max = 10
         csi, esi, osi = [1, 1, 0]
 
-    if id_motor == 3:
+    elif id_motor == 3:
         prop = 'knsb'
         Dt = 9.659
         Rho_pct = 0.95
@@ -76,7 +75,20 @@ def mot(id_motor):
         p_min = 0
         p_max = 10
         csi, esi, osi = [1, 1, 0]
-
+    elif id_motor == 4:
+        prop = 'knsb'
+        Dt = 9.659
+        Rho_pct = 0.95
+        Ng = 4
+        L = 50.0
+        De = 45.0
+        Di = 25.0
+        p_min = 0
+        p_max = 10
+        csi, esi, osi = [1, 1, 0]
+    else:
+        id_motor_new = int(input('Please select one of the available motors, 1,2,3,4...: '))
+        return mot(id_motor_new)
     dp = dict_prop[prop]
     rhoideal = properties_table[0][dp]
 
