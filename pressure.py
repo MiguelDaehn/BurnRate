@@ -197,7 +197,7 @@ def calculate_pressure_parameters(N, motor_data):
 
     # Plotting pressure x time
 
-
+    
     return t,Pc_Mpa,k,tbout,r_avg,m_grain[0]
 
 

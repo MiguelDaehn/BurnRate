@@ -6,7 +6,7 @@ from burnrate import *
 from thrust import calculate_thrust
 
 
-#TODO:
+# TODO:
 # 1:
 # Correct the error, discontinuity that occurs
 # when pressure drops to 0. just set ds/dt = 0.
@@ -16,24 +16,20 @@ from thrust import calculate_thrust
 # fit the power law https://www.youtube.com/watch?v=wujirumjHxU
 
 
-
 def main():
-
-    test_Nakka          = False
-    test_Rand           = False
+    test_Nakka = False
+    test_Rand = False
     test_BRfrompressure = False
-    test_BRmultiple     = False
-    test_pressure       = False
-    test_thrust         = True
+    test_BRmultiple = False
+    test_pressure = False
+    test_thrust = True
 
     id_file = "q2OM"
-
-
 
     p_min = 3.85
     p_max = 4.3
 
-    #TODO:
+    # TODO:
     # Add a function that takes initial parameters such as a Diametere
     # And returns ALL needed parameters that can be calculated quickly
     # In order to declutter other functions (having calculations in them that don't serve the main purpose)
@@ -46,7 +42,6 @@ def main():
     De = 45.0
     Di = 25.0
 
-
     if test_Nakka:
         prop = 'knpsb'
         dp = dict_prop[prop]
@@ -58,7 +53,7 @@ def main():
         L = 65.0
         De = 43.1
         Di = 13.88
-    elif(test_Rand):
+    elif (test_Rand):
         prop = 'knpsb'
         dp = dict_prop[prop]
         rhoideal = ic(properties_table[0][dp])
@@ -70,8 +65,8 @@ def main():
         De = 50
         Di = 4
 
-    csi, esi,osi = [1,1,0]
-    motor = ar([prop, Dt, Rho_pct, Ng, L, De, Di, p_min, p_max,csi,esi,osi])
+    csi, esi, osi = [1, 1, 0]
+    motor = ar([prop, Dt, Rho_pct, Ng, L, De, Di, p_min, p_max, csi, esi, osi])
 
     if test_BRfrompressure:
         Pc, BR, pars = BR_from_pressure(id_file, motor)
@@ -80,33 +75,35 @@ def main():
            'Taxa de regressão em função da pressão',
            labelf=f'{pars[1]}·P^{pars[0]}', log=0,
            x0f=[0.95 * p_min, 1.0 * p_max],
-           y0f=[0.95 * min(BR[np.where(BR>0)]), 1.05 * max(BR[np.where(BR<40)])])
+           y0f=[0.95 * min(BR[np.where(BR > 0)]), 1.05 * max(BR[np.where(BR < 40)])])
     if test_BRmultiple:
-        Prange = np.linspace(0.12,10,10000)
-        arrstr = ar(['knsb','knsu'])
+        Prange = np.linspace(0.12, 10, 10000)
+        arrstr = ar(['knsb', 'knsu'])
 
         for rd in arrstr:
-            Rd = ar([rdp(rd,p) for p in Prange])
-            plt.plot(Prange,Rd)
+            Rd = ar([rdp(rd, p) for p in Prange])
+            plt.plot(Prange, Rd)
 
-        plt.xlabel('Pressure [MPa]');plt.ylabel('R_dot [mm/s]');plt.title('Rd Values vs Pressure')
-        plt.legend();plt.grid()
+        plt.xlabel('Pressure [MPa]');
+        plt.ylabel('R_dot [mm/s]');
+        plt.title('Rd Values vs Pressure')
+        plt.legend();
+        plt.grid()
         plt.show()
 
     # N = 834
-    N = 100*20
+    N = 100 * 20
     if test_pressure:
         t, Pc, k, tbout, r_avg, m_grain0 = calculate_pressure_parameters(int(N), motor)
 
     if test_thrust:
-        F,Pc,t = calculate_thrust(N,motor,0.85,6.3)
-        ic(F,Pc,t)
+        F, Pc, t = calculate_thrust(N, motor, 0.85, 6.3)
+        ic(F, Pc, t)
         pl(t, Pc, 'Tempo [s]', 'Pressão na Câmara [MPa]',
            'Pressão na câmara em função do tempo', 'Pressão', [-0.05, None], [0, None])
 
-
         pl(t, F, 'Tempo [s]', 'Empuxo [N]',
-           'Empuxo em função do tempo', 'F',[-0.05, None], [0, None])
+           'Empuxo em função do tempo', 'F', [-0.05, None], [0, None])
 
     return 0
 
