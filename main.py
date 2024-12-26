@@ -19,7 +19,7 @@ from thrust import calculate_thrust
 def main():
     test_Nakka = False
     test_Rand = False
-    test_BRfrompressure = False
+    test_BRfrompressure = True
     test_BRmultiple = False
     test_pressure = False
     test_thrust = True

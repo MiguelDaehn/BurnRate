@@ -21,7 +21,7 @@ target_func = func_powerlaw
 
 
 def BR_from_pressure(id, motor_data):
-    T, Pc = LoadData('BR_', id.lower(), 'csv')
+    T, Pc = LoadData('BR', id.lower(), 'csv')
     if max(Pc > 1e5):
         Pc = Pc / 10 ** 6
     delta_t = np.array([T[i + 1] - T[i] for i in range(len(T) - 1)])
