@@ -51,7 +51,7 @@ def find_er(value,array):
     return K
 
 def LoadData(type, id, format='csv'):
-    path_csv = 'data/' + type + '_' + id + '.' + format
+    path_csv = 'data/' + type + id + '.' + format
     try:
         data = np.loadtxt(path_csv, delimiter='\t', skiprows=1)
     except:

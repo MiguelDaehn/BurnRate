@@ -30,16 +30,17 @@ def BR_from_pressure(id, motor_data):
     T, Pc = LoadData('BR_', id.lower(), 'csv')
     if max(Pc > 1e5):
         Pc = Pc / 10 ** 6
+
     delta_t = np.array([T[i + 1] - T[i] for i in range(len(T) - 1)])
     delta_t = np.append(delta_t, delta_t[-1])
     dt_avg = np.average(delta_t)
 
-    p_min = motor_data[18].astype(float)
-    p_max = motor_data[19].astype(float)
+    p_min = motor_data[24].astype(float)
+    p_max = motor_data[25].astype(float)
     # p_min *= 1e6
     # p_max *= 1e6
 
-    prop = motor_data[0].lower()
+    prop = motor_data[0].astype(str).lower()
     Dt = motor_data[1].astype(float)
     rho_pct = motor_data[2].astype(float)
     Ng = motor_data[3].astype(int)
@@ -47,7 +48,7 @@ def BR_from_pressure(id, motor_data):
     De = motor_data[5].astype(float)
     Di = motor_data[6].astype(float)
     w0 = motor_data[7].astype(float)
-    dp = motor_data[11].astype(int)
+    dp = motor_data[11].astype(float)
 
     rhoideal = motor_data[12].astype(float)
     rho_g = motor_data[13].astype(float)
@@ -55,7 +56,8 @@ def BR_from_pressure(id, motor_data):
     mp = motor_data[18].astype(float)
 
     Psum = np.sum(Pc)
-    cstar = ((At / mp) * Psum * dt_avg) / 1000
+    cstar = ((At / mp) * Psum * dt_avg)*1000
+    ic(cstar)
     err_w0 = 1.0
 
     Ab = np.zeros_like(T)
@@ -94,7 +96,8 @@ def BR_from_pressure(id, motor_data):
         finish = time.time()
         if finish - start > 10:
             break
-
+    ds_dt = ds_dt*1e6
+    # p_max =0
     if p_max == 0:
         pass
     else:
@@ -103,7 +106,7 @@ def BR_from_pressure(id, motor_data):
         z = np.intersect1d(j, k)
         Pc = Pc[z]
         ds_dt = ds_dt[z]
-
+    ic(ds_dt)
 
 
     target_func = func_powerlaw

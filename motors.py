@@ -36,7 +36,7 @@ def mot(id_motor):
             p_max = float(input('Maximum chamber pressure [MPa]: '))
         else:
             p_min = 0
-            p_max = None
+            p_max = 10
 
     elif id_motor == 1:
         prop = 'knsb'
@@ -48,6 +48,8 @@ def mot(id_motor):
         Di = 25.0
         nuc = 0.95
         csi, esi, osi = [1, 1, 0]
+        p_min = 3.85
+        p_max = 4.3
 
     elif id_motor == 2:
         prop = 'knpsb'
@@ -60,6 +62,8 @@ def mot(id_motor):
         Di = 13.88
         nuc = 0.95
         csi, esi, osi = [1, 1, 0]
+        p_min = 3.5
+        p_max = 5.5
 
     elif id_motor == 3:
         prop = 'knpsb'
@@ -72,6 +76,8 @@ def mot(id_motor):
         Di = 4
         nuc = 0.95
         csi, esi, osi = [1, 1, 0]
+        p_min = 0
+        p_max = 10
 
     else:
         print('Please input a valid motor id.')
@@ -86,7 +92,7 @@ def mot(id_motor):
     Vc = (Lc * (pi / 4) * De ** 2) / 1000 ** 3
 
     At = pi * (Dt / 2) ** 2
-    Vg = pi * ((De / 2 / 10) ** 2 - (Di / 2 / 10) ** 2) * (L / 10)
+    Vg = pi * ((De / 2  / 10) ** 2 - (Di / 2 / 10) ** 2) * (L / 10)
     mp = Ng * Vg * rho_g
 
     rat = Ru / properties_table[2][dp]
@@ -97,5 +103,30 @@ def mot(id_motor):
     k = properties_table[1][dp]
     c_star = np.sqrt(ratto / k * (((k + 1) / 2) ** ((k + 1) / (k - 1))))
 
-    motor_data = ar([prop, Dt, Rho_pct, Ng, L, De, Di, w0,csi, esi, osi,dp,rhoideal,rho_g,Lc,Vc,At,Vg,mp,rat,to,ratto,k,c_star,p_min, p_max])
+    motor_data = ar([prop,      #00
+                     Dt,        #01
+                     Rho_pct,   #02
+                     Ng,        #03
+                     L,         #04
+                     De,        #05
+                     Di,        #06
+                     w0,        #07
+                     csi,       #08
+                     esi,       #09
+                     osi,       #10
+                     dp,        #11
+                     rhoideal,  #12
+                     rho_g,     #13
+                     Lc,        #14
+                     Vc,        #15
+                     At,        #16
+                     Vg,        #17
+                     mp,        #18
+                     rat,       #19
+                     to,        #20
+                     ratto,     #21
+                     k,         #22
+                     c_star,    #23
+                     p_min,     #24
+                     p_max])    #25
     return motor_data

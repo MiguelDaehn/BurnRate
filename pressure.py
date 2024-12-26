@@ -6,19 +6,19 @@ from burnrate import *
 def calculate_pressure_parameters(N, motor_data):
     prop = motor_data[0].astype(str)
 
-    Dt = motor_data[1].astype(float)
-    Rho_pct = motor_data[2].astype(float)
-    Ng = motor_data[3].astype(float)
-    L0 = motor_data[4].astype(float)
-    De = motor_data[5].astype(float)
-    Di = motor_data[6].astype(float)
+    Dt = motor_data[1]
+    Rho_pct = motor_data[2]
+    Ng = motor_data[3]
+    L0 = motor_data[4]
+    De = motor_data[5]
+    Di = motor_data[6]
 
-    p_min = motor_data[7].astype(float)
-    p_max = motor_data[8].astype(float)
+    p_min = motor_data[7]
+    p_max = motor_data[8]
 
-    csi = motor_data[9].astype(int)
-    esi = motor_data[10].astype(int)
-    osi = motor_data[11].astype(int)
+    csi = motor_data[9]
+    esi = motor_data[10]
+    osi = motor_data[11]
 
     # TODO:
     # Add functionality to check if the user is

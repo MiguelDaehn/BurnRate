@@ -20,33 +20,34 @@ from motors import *
 #  Manipulate 'nuc' to reach the calculated value of c*
 #  if calculating from experimental pressure values
 
+def test_BRfrompressure(id_file,motor):
+    p_min = motor[24].astype(float)
+    p_max = motor[25].astype(float)
+
+    Pc, BR, pars = BR_from_pressure(id_file, motor)
+    plt.plot(Pc, target_func(Pc, *pars), '--')
+    pl(Pc, BR, 'Pressão na Câmara [MPa]', 'Burn Rate [mm/s]',
+       'Taxa de regressão em função da pressão',
+       labelf=f'{pars[1]}·P^{pars[0]}', log=0,
+       x0f=[0.95 * p_min, 1.0 * p_max],
+       y0f=[0.95 * min(BR[np.where(BR > 0)]), 1.05 * max(BR[np.where(BR < 40)])])
+    return 0
+
 def main():
 
-    test_BRfrompressure = False
     test_BRmultiple = False
     test_pressure = False
-    test_thrust = True
+    test_thrust = False
 
-    id_motor = 1
+    id_motor = 2
     motor = mot(id_motor)
-    id_file = "q2OM"
-
-    p_min = 3.85
-    p_max = 4.3
+    id_file = "nakka"
 
 
 
+    test_BRfrompressure(id_file,motor)
 
 
-
-    if test_BRfrompressure:
-        Pc, BR, pars = BR_from_pressure(id_file, motor)
-        plt.plot(Pc, target_func(Pc, *pars), '--')
-        pl(Pc, BR, 'Pressão na Câmara [MPa]', 'Burn Rate [mm/s]',
-           'Taxa de regressão em função da pressão',
-           labelf=f'{pars[1]}·P^{pars[0]}', log=0,
-           x0f=[0.95 * p_min, 1.0 * p_max],
-           y0f=[0.95 * min(BR[np.where(BR > 0)]), 1.05 * max(BR[np.where(BR < 40)])])
     if test_BRmultiple:
         Prange = np.linspace(0.12, 10, 10000)
         arrstr = ar(['knsb', 'knsu'])
