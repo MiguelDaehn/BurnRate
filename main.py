@@ -1,72 +1,34 @@
-import numpy as np
-
 from pressure import calculate_pressure_parameters
 from startup import *
 from burnrate import *
 from thrust import calculate_thrust
+from motors import *
 
 
-# TODO:
-# 1:
-# Correct the error, discontinuity that occurs
-# when pressure drops to 0. just set ds/dt = 0.
-# 2:
-# log scale graph not working. is it because the graph is in MPa? shouldn't be, right?
-# 3:
-# fit the power law https://www.youtube.com/watch?v=wujirumjHxU
 
 
 def main():
-    test_Nakka = False
-    test_Rand = False
+
     test_BRfrompressure = False
     test_BRmultiple = False
     test_pressure = False
     test_thrust = True
 
+    id_motor = 1
+    motor = mot(id_motor)
     id_file = "q2OM"
 
     p_min = 3.85
     p_max = 4.3
 
     # TODO:
-    # Add a function that takes initial parameters such as a Diametere
+    # Add a function that takes initial parameters such as a Diameter
     # And returns ALL needed parameters that can be calculated quickly
     # In order to declutter other functions (having calculations in them that don't serve the main purpose)
 
-    prop = 'knsb'
-    Dt = 9.659
-    Rho_pct = 0.95
-    Ng = 4
-    L = 50.0
-    De = 45.0
-    Di = 25.0
 
-    if test_Nakka:
-        prop = 'knpsb'
-        dp = dict_prop[prop]
-        rhoideal = ic(properties_table[0][dp])
-        At = 81.1
-        Dt = np.sqrt(At / (pi / 4)) * 10
-        Rho_pct = 1.912 / rhoideal
-        Ng = 2
-        L = 65.0
-        De = 43.1
-        Di = 13.88
-    elif (test_Rand):
-        prop = 'knpsb'
-        dp = dict_prop[prop]
-        rhoideal = ic(properties_table[0][dp])
-        At = 81.1
-        Dt = np.sqrt(At / (pi / 4)) * 10
-        Rho_pct = 1.912 / rhoideal
-        Ng = 2
-        L = 65.0
-        De = 50
-        Di = 4
 
-    csi, esi, osi = [1, 1, 0]
-    motor = ar([prop, Dt, Rho_pct, Ng, L, De, Di, p_min, p_max, csi, esi, osi])
+
 
     if test_BRfrompressure:
         Pc, BR, pars = BR_from_pressure(id_file, motor)
@@ -98,7 +60,6 @@ def main():
 
     if test_thrust:
         F, Pc, t = calculate_thrust(N, motor, 0.85, 6.3)
-        ic(F, Pc, t)
         pl(t, Pc, 'Tempo [s]', 'Pressão na Câmara [MPa]',
            'Pressão na câmara em função do tempo', 'Pressão', [-0.05, None], [0, None])
 
@@ -118,3 +79,6 @@ if __name__ == '__main__':
     #  to using lambda functions, to keep it neat.
     #  2:
     #  Add SRM's calculation of optimal thoaat diameter for the pressure.
+    #  3:
+    #  Manipulate 'nuc' to reach the calculated value of c*
+    #  if calculating from experimental pressure values

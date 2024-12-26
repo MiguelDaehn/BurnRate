@@ -25,19 +25,7 @@ def calculate_pressure_parameters(N, motor_data):
     # separating KNSB grains with o-rings
     # L_oring = motor_data[x]
     # Lc = Ng*(L0+L_oring)
-    Lc = (Ng * L0) * 1.2
-    Vc = (Lc * (pi / 4) * De ** 2) / 1000 ** 3
-    dp = dict_prop[prop]
-    rat = Ru / properties_table[2][dp]
-    # Manipulate 'nuc' to reach the calculated value of c*
-    # if calculating from experimental pressure values
-    nuc = 0.95
-    to = nuc * properties_table[3][dp]
-    ratto = rat * to
-    # ic(ratto)
-    k = properties_table[1][dp]
-    c_star = np.sqrt(ratto/k*(((k+1)/2)**((k+1)/(k-1))))
-    ic(c_star)
+
     pbd = 0
 
     tw0 = (De - Di) / 2
@@ -147,7 +135,7 @@ def calculate_pressure_parameters(N, motor_data):
     t_inc = 0.0001
     tbout = t[-1]
     pbout = Pc_Mpa[-1]
-    ic(tbout,pbout,ratto,A_star,Vc,c_star)
+    # ic(tbout,pbout,ratto,A_star,Vc,c_star)
     # breakpoint()
 
     err_MPa = 1.0
@@ -197,7 +185,7 @@ def calculate_pressure_parameters(N, motor_data):
 
     # Plotting pressure x time
 
-    
+
     return t,Pc_Mpa,k,tbout,r_avg,m_grain[0]
 
 

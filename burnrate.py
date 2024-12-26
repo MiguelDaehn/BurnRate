@@ -1,6 +1,13 @@
-import numpy as np
-
 from startup import *
+
+# TODO:
+#  1:
+#  Correct the error, discontinuity that occurs
+#  when pressure drops to 0 while calculating burn rate. just set ds/dt = 0.
+#  2:
+#  log scale graph not working. is it because the graph is in MPa? shouldn't be, right?
+#  3:
+#  fit the power law https://www.youtube.com/watch?v=wujirumjHxU
 
 
 def Ab_f(N, De, Di0, L, s):
