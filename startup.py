@@ -1,22 +1,54 @@
 import numpy as np
-import matplotlib.pyplot as plt
 from numpy import exp,sin, cos, tan, arcsin, arccos, arctan, pi,where
+from scipy.optimize import curve_fit
+
+import matplotlib.pyplot as plt
 import pandas as pd
+
 from icecream import ic
 import time
-from scipy.optimize import curve_fit
+import warnings
+
+# Suppress RuntimeWarnings
+# Debugging: turn this off
+warnings.filterwarnings("ignore", category=RuntimeWarning)
+
+
+
 
 Ru = 8314.34 #kg/mol-K
 patm = 0.101325 #MPa
 patm_pa = patm*1e6
 g0 = 9.80665
-def main():
-    return 0
-
-
 def ar(lista):
     return np.array(lista)
 
+
+def err(x1, x2):
+    if x1 == 0:
+        return 0
+    return abs((x1 - x2) / x1)
+
+
+def err_arr(value,array):
+    er = ar([err(value,i) for i in array])
+    return er
+
+def where_interval(Array, min_val, max_val):
+    Array = ar(Array)
+
+    A = np.where(Array >= min_val)[0]
+    B = np.where(Array <= max_val)[0]
+
+    C = np.intersect1d(A, B)
+
+    return C
+
+def find_er(value,array):
+    '''Finds the id of the value with the mininum relative error to the desired value.'''
+    er = err_arr(value,array)
+    K = where(min(er))[0]
+    return K
 
 def LoadData(type, id, format='csv'):
     path_csv = 'data/' + type + '_' + id + '.' + format
@@ -28,12 +60,6 @@ def LoadData(type, id, format='csv'):
     D1 = data[:, 1]
 
     return T, D1
-
-
-def err(x1, x2):
-    if x1 == 0:
-        return 0
-    return abs((x1 - x2) / x1)
 
 
 def pl(x, y, lx='', ly='', tit='', labelf='', x0f=[0, None], y0f=[0, None], log=0):
@@ -52,17 +78,51 @@ def pl(x, y, lx='', ly='', tit='', labelf='', x0f=[0, None], y0f=[0, None], log=
     plt.show()
     return
 
+def motor(motor_data):
+
+    return motor_data
+
+
 def ifxl(cond,v_pos,v_neg):
     if cond:
         return v_pos
     else:
         return v_neg
 
-dict_prop = {'kndx': 0, 'knsb': 1, 'knsu':2,'kner': 3, 'knmn': 4, 'knfr':5,'knpsb': 6}
-# rho_prop = {'knsu': 1.889, 'knsb': 1.841, 'kner': 1.820, 'kndx': 1.879, 'knmn': 1.854, 'knpsb': 1.923}
+def find_M2(AeAt,k):
+    AeAt = float(AeAt)
+    ME = lambda Me: AeAt - 1 / Me * ((1 + (k - 1) / 2 * Me ** 2) / (1 + (k - 1) / 2)) ** ((k + 1) / (2 * (k - 1)))
 
+    M2 = np.linspace(0.001, 10, 1000)
+    Mea = ar([abs(ME(i)) for i in M2])
+    ID = np.argmin(Mea)
+    val = M2[ID]
+
+    M2 = np.linspace(val-1,val+1,10000)
+    Mea = ar([abs(ME(i)) for i in M2])
+    ID = np.argmin(Mea)
+    val = M2[ID]
+
+    return val
+
+dict_prop = {'kndx': 0, 'knsb': 1, 'knsu':2,'kner': 3, 'knmn': 4, 'knfr':5,'knpsb': 6}
+
+
+
+# DEPRECATED: now using properties_table
+# rho_prop = {'knsu': 1.889, 'knsb': 1.841, 'kner': 1.820, 'kndx': 1.879, 'knmn': 1.854, 'knpsb': 1.923}
 properties_path = 'data/properties.csv'
+
 properties_table = np.loadtxt(properties_path, delimiter=',', skiprows=1, usecols=range(1, 8))
 # ic(properties_table)
+
+
+
+def main():
+    ic(find_M2(6.278, 1.137))
+    return 0
+
+
+
 if __name__ == '__main__':
     main()
