@@ -96,4 +96,4 @@ def main():
 
 if __name__ == '__main__':
     main()
-    print('\n\nPlease read the improvement suggestions at the end of the main.py script.\n\n')
+    print('\n\nPlease read the improvement suggestions at the beginning of the main.py script.\n\n')
