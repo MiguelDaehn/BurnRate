@@ -31,7 +31,8 @@ from motor import *
 #  There's an error when you try to run plt_AeAt(N, array_AeAt, motor, eta_noz=0.85):
 #  It seems that for some reason the thrust is getting multiplied, like 3000 N when it was supposed to be ~500
 #  Ok apparently it surges when the expansion ratio goes above 9 or 10
-
+#  9:
+#  YOU NEED TO FIX THE CF (THRUST COEFFICIENT) SOONER RATHER THAN LATER THIS IS A SERIOUS ISSUE
 
 def plt_m_grains(N,id_prop,arr_props,motor,eta_noz=0.85,AeAt=6.3):
     for prop in arr_props:
