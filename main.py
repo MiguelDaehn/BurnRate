@@ -60,8 +60,8 @@ def main():
     # plt_m_grains(N,id_prop,array_L,motor,eta_noz=0.85,AeAt=6.3)
 
     # Testing with varying expansion ratios ---//--//---//--//---//--//---//--//---//--//---//--//---//--//---//--//---//--//
-    array_AeAt = np.linspace(1, 6.5, 100)
-    plt_AeAt(N, array_AeAt, motor, eta_noz=0.85)
+        # array_AeAt = np.linspace(1, 6.5, 100)
+        # plt_AeAt(N, array_AeAt, motor, eta_noz=0.85)
 
     # Test with 35 different inner diameter values for the grains---//--//---//--//---//--//---//--//---//--//---//--//---//--//---//--//---//--//
     # array_Di = np.linspace(5,35,100)
@@ -74,8 +74,8 @@ def main():
     # test_BR_from_pressure(id_file,id_motor,p_min=3.5,p_max=4.5)
     # test_br_multiple()
     t, Pc, k, tbout, r_avg, m_grain0 = calculate_pressure_parameters(int(N), motor)
-    # thrust_pressure(N,motor,6.278)
-
+    F, Pc_MPa, t, Cf = calculate_thrust(N,motor,0.85,6.278)
+    data_01 = np.column_stack((t,F))
 
     # New functions ---//--//---//--//---//--//---//--//---//--//---//--//---//--//---//--//---//--//
     info_01 = {'filename'           : 'nome_placeholder',
@@ -89,7 +89,7 @@ def main():
 
     path_thrustcurves = '/home/kanamori/.openrocket/ThrustCurves/'
 
-    save_array_to_eng_file(data, info_01, path_thrustcurves)
+    save_array_to_eng_file(data_01, info_01, path_thrustcurves)
 
     return 0
 
