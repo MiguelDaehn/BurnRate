@@ -1,4 +1,4 @@
-import
+from thrust import *
 
 
 def plt_m_grains(N,id_prop,arr_props,motor,eta_noz=0.85,AeAt=6.3):
@@ -21,3 +21,14 @@ def plt_AeAt(N,arr_aeat,motor,eta_noz=0.85):
         plt.plot(t, Cf)
     plt.grid(True)
     plt.show()
+
+
+
+
+
+def main():
+
+    return 0
+
+if __name__ == '__main__':
+    main()
