@@ -24,8 +24,8 @@ def plt_AeAt(N,arr_aeat,motor,eta_noz=0.85):
     plt.show()
 
 
-def save_array_to_eng_file(data, filename, name, outer_diameter, length, delay_charge_time, propellant_mass, total_mass,
-                           manufacturer):
+def save_array_to_eng_file(data, motor_info):
+    filename, name, outer_diameter, length, delay_charge_time, propellant_mass, total_mass,manufacturer = motor_info
     """
     Saves a 2D numpy array with 2 columns to a .eng file with a custom header.
 
@@ -38,9 +38,10 @@ def save_array_to_eng_file(data, filename, name, outer_diameter, length, delay_c
     - delay_charge_time: Delay charge time.
     - propellant_mass: Propellant mass.
     - total_mass: Total mass (propellant+dry weight -> if you want to manually add the parts' weight).
-                    and location, propellant_mass == total_mass
+                  and location, propellant_mass == total_mass
     - manufacturer: Manufacturer name.
     """
+
     # Ensure the filename ends with .eng
     if not filename.endswith('.eng'):
         filename += '.eng'
@@ -58,16 +59,17 @@ def save_array_to_eng_file(data, filename, name, outer_diameter, length, delay_c
 def main():
     # Example usage:
     data = np.array([[1.0, 2.0], [3.0, 4.0], [5.0, 6.0]])  # Example 2D array
+    info_01 = {'filename'   :'output',
+        'name'              :'Canards_01',
+        'outer_diameter'    :'45.0',
+        'length'            :'314.0',
+        'delay_charge_time' :'0.670',
+        'propellant_mass'   :'0.670',
+        'total_mass'        :'0.670000',
+        'manufacturer'      :'TauRocketTeam'}
     save_array_to_eng_file(
         data,
-        'output',
-        name='Canards_01',
-        outer_diameter=45.0,
-        length=314.0,
-        delay_charge_time=0.670,
-        propellant_mass=0.670,
-        total_mass=0.670000,
-        manufacturer='TauRocketTeam'
+        info_01
     )
 
     return 0
