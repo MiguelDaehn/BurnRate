@@ -6,6 +6,8 @@ from startup import *
 from burnrate import *
 from thrust import *
 from motor import *
+from plots import *
+
 
 # TODO:
 #  1:
