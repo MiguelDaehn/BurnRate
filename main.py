@@ -14,7 +14,7 @@ from plots import *
 #  Change the updating of the values in the for loops from directly altering the formula
 #  to using lambda functions, to keep it neat.
 #  2:
-#  Add SRM's calculation of optimal thoaat diameter for the pressure.
+#  Add SRM's calculation of optimal throat diameter for the pressure.
 #  3:
 #  Correct the error, discontinuity that occurs
 #  when pressure drops to 0. just set ds/dt = 0.
@@ -23,7 +23,7 @@ from plots import *
 #  5:
 #  fit the power law https://www.youtube.com/watch?v=wujirumjHxU
 #  6:
-#  Add a function that takes initial parameters such as a Diametere
+#  Add a function that takes initial parameters such as a Diameter
 #  And returns ALL needed parameters that can be calculated quickly
 #  In order to declutter other functions (having calculations in them that don't serve the main purpose)
 #  7:
