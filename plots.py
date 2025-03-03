@@ -24,8 +24,8 @@ def plt_AeAt(N,arr_aeat,motor,eta_noz=0.85):
     plt.show()
 
 
-def save_array_to_eng_file(data, motor_info):
-    filename, name, outer_diameter, length, delay_charge_time, propellant_mass, total_mass,manufacturer = motor_info
+def save_array_to_eng_file(data, motor_info,path):
+    filename, name, outer_diameter, length, delay_charge_time, propellant_mass, total_mass,manufacturer = motor_info.values()
     """
     Saves a 2D numpy array with 2 columns to a .eng file with a custom header.
 
@@ -47,7 +47,7 @@ def save_array_to_eng_file(data, motor_info):
         filename += '.eng'
 
     # Create the header string
-    header = f"{name} {outer_diameter} {length} {delay_charge_time} {propellant_mass} {total_mass} {manufacturer}"
+    header = f"{path+name} {outer_diameter} {length} {delay_charge_time} {propellant_mass} {total_mass} {manufacturer}"
 
     # Save the array to the file with the header
     np.savetxt(filename, data, fmt='%.6f', delimiter='\t', header=header, comments='')
@@ -59,18 +59,19 @@ def save_array_to_eng_file(data, motor_info):
 def main():
     # Example usage:
     data = np.array([[1.0, 2.0], [3.0, 4.0], [5.0, 6.0]])  # Example 2D array
+
     info_01 = {'filename'   :'output',
         'name'              :'Canards_01',
         'outer_diameter'    :'45.0',
         'length'            :'314.0',
-        'delay_charge_time' :'0.670',
-        'propellant_mass'   :'0.670',
-        'total_mass'        :'0.670000',
-        'manufacturer'      :'TauRocketTeam'}
-    save_array_to_eng_file(
-        data,
-        info_01
-    )
+        'delay_charge_time' :'P',
+        'propellant_mass'   :'0.67',
+        'total_mass'        :'0.67',
+        'manufacturer'      :'TauRocketTeamA'}
+
+    path_thrustcurves = '/home/kanamori/.openrocket/ThrustCurves'
+
+    save_array_to_eng_file(data, info_01, path_thrustcurves)
 
     return 0
 
