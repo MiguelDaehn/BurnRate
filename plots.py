@@ -47,10 +47,10 @@ def save_array_to_eng_file(data, motor_info,path):
         filename += '.eng'
 
     # Create the header string
-    header = f"{path+name} {outer_diameter} {length} {delay_charge_time} {propellant_mass} {total_mass} {manufacturer}"
+    header = f"{name} {outer_diameter} {length} {delay_charge_time} {propellant_mass} {total_mass} {manufacturer}"
 
     # Save the array to the file with the header
-    np.savetxt(filename, data, fmt='%.6f', delimiter='\t', header=header, comments='')
+    np.savetxt(path+filename, data, fmt='%.6f', delimiter='\t', header=header, comments='')
 
 
 
@@ -69,7 +69,7 @@ def main():
         'total_mass'        :'0.67',
         'manufacturer'      :'TauRocketTeamA'}
 
-    path_thrustcurves = '/home/kanamori/.openrocket/ThrustCurves'
+    path_thrustcurves = '/home/kanamori/.openrocket/ThrustCurves/'
 
     save_array_to_eng_file(data, info_01, path_thrustcurves)
 

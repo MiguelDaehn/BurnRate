@@ -54,20 +54,22 @@ def main():
     id_motor = 1
     motor = mot(id_motor)
 
+    # Testing with varying lengths---//--//---//--//---//--//---//--//---//--//---//--//---//--//---//--//---//--//
     # array_L = np.linspace(20,60,10)
     # id_prop = 4
     # plt_m_grains(N,id_prop,array_L,motor,eta_noz=0.85,AeAt=6.3)
 
+    # Testing with varying expansion ratios ---//--//---//--//---//--//---//--//---//--//---//--//---//--//---//--//---//--//
     array_AeAt = np.linspace(1, 6.5, 100)
     plt_AeAt(N, array_AeAt, motor, eta_noz=0.85)
 
-    # Test with 35 different inner diameter values for the grains
+    # Test with 35 different inner diameter values for the grains---//--//---//--//---//--//---//--//---//--//---//--//---//--//---//--//---//--//
     # array_Di = np.linspace(5,35,100)
     # id_prop = 6
     # plt_m_grains(N,id_prop,array_Di,motor,eta_noz=0.85,AeAt=6.3)
 
 
-    # Test functions
+    # Test functions---//--//---//--//---//--//---//--//---//--//---//--//---//--//---//--//---//--//
 
     # test_BR_from_pressure(id_file,id_motor,p_min=3.5,p_max=4.5)
     # test_br_multiple()
@@ -75,6 +77,19 @@ def main():
     # thrust_pressure(N,motor,6.278)
 
 
+    # New functions ---//--//---//--//---//--//---//--//---//--//---//--//---//--//---//--//---//--//
+    info_01 = {'filename'           : 'nome_placeholder',
+               'name'               : 'Canards_01',
+               'outer_diameter'     : '45.0',
+               'length'             : '314.0',
+               'delay_charge_time'  : 'P',
+               'propellant_mass'    : '0.67',
+               'total_mass'         : '0.67',
+               'manufacturer'       : 'TauRocketTeamA'}
+
+    path_thrustcurves = '/home/kanamori/.openrocket/ThrustCurves/'
+
+    save_array_to_eng_file(data, info_01, path_thrustcurves)
 
     return 0
 
