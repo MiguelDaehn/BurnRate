@@ -31,7 +31,8 @@ from plots import *
 #  Ok apparently it surges when the expansion ratio goes above 9 or 10
 #  9:
 #  YOU NEED TO FIX THE CF (THRUST COEFFICIENT) SOONER RATHER THAN LATER THIS IS A SERIOUS ISSUE
-#  10: add an eng(motor, path) that creates a .eng file for the motor at the path (such as the openrocket folder for convenience)
+#  10:
+#  Add functionality to check if the user is separating KNSB grains with o-rings
 
 
 

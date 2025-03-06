@@ -21,8 +21,8 @@ def calculate_pressure_parameters(N, motor_data):
     osi = motor_data[11].astype(int)
 
     # TODO:
-    # Add functionality to check if the user is
-    # separating KNSB grains with o-rings
+    #  Add functionality to check if the user is separating KNSB grains with o-rings
+
     # L_oring = motor_data[x]
     # Lc = Ng*(L0+L_oring)
     Lc = (Ng * L0) * 1.2
