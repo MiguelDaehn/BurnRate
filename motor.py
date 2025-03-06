@@ -12,6 +12,7 @@ def mot(id_motor):
         De = float(input('External Diameter of grain [mm]: '))
         Di = float(input('Inner Diameter of grain [mm]: '))
         nuc = float(input('Combustion efficiency  η (usually 0.95): '))
+        P_target = float(input('Target MEOP [MPa]: '))
 
         csi = input('Core surface inhibited? [y/N]: ').lower()
         esi = input("Ends' surfaces inhibited? [y/N]: ").lower()
@@ -49,6 +50,7 @@ def mot(id_motor):
         Di = 25.0
         p_min = 0
         p_max = 10
+        P_target = 4.5
         csi, esi, osi = [1, 1, 0]
 
     elif id_motor == 2:
@@ -62,6 +64,7 @@ def mot(id_motor):
         Di = 13.88
         p_min = 0
         p_max = 10
+        P_target = 4.5
         csi, esi, osi = [1, 1, 0]
 
     elif id_motor == 3:
@@ -74,6 +77,7 @@ def mot(id_motor):
         Di = 25.0
         p_min = 0
         p_max = 10
+        P_target = 4.5
         csi, esi, osi = [1, 1, 0]
     elif id_motor == 4:
         prop = 'knsb'
@@ -85,13 +89,13 @@ def mot(id_motor):
         Di = 25.0
         p_min = 0
         p_max = 10
+        P_target = 4.5
         csi, esi, osi = [1, 1, 0]
     else:
         id_motor_new = int(input('Please select one of the available motors, 1,2,3,4...: '))
         return mot(id_motor_new)
     dp = dict_prop[prop]
     rhoideal = properties_table[0][dp]
-
 
     motor_data = ar([prop, Dt, Rho_pct, Ng, L, De, Di, p_min, p_max, csi, esi, osi])
 

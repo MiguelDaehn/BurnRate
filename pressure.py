@@ -74,6 +74,8 @@ def calculate_pressure_parameters(N, motor_data):
     mdot_ger    = np.zeros_like(s)
     m_grain     = np.zeros_like(s)
     rdot        = np.zeros_like(s)
+    A_burn      = np.zeros_like(s)
+
     Pc_pa       = np.ones_like(s) * patm * 1e6
     V_free      = np.ones_like(s) * Vc
     Pc_Mpa      = np.ones_like(s) * patm
@@ -83,6 +85,7 @@ def calculate_pressure_parameters(N, motor_data):
     L[0]    = L0 * Ng
     TW[0]   = tw0
 
+    A_burn[0] = ((pi/4)*(DE[0]**2-DI[0]**2)*2*Ng*esi) + (pi*DE[0]*L[0]*Ng*osi) + (pi*DI[0]*L[0]*Ng*csi)
     # Note:
     # Here I'm assuming that the grain outer diameter is the case inner diameter
     # Of course there is thermal protection too, but the area we're gonna use (A_duct) is the
@@ -118,6 +121,7 @@ def calculate_pressure_parameters(N, motor_data):
         t[i] = incs / rdot[i] + t[i - 1]
 
         AI[i] = (Pc_Mpa2[i] - patm) * 1e6 * A_star * par_AI
+        A_burn[i] = ((pi / 4) * (DE[i] ** 2 - DI[i] ** 2) * 2 * Ng * esi) + (pi * DE[i] * L[i] * Ng * osi) + (pi * DI[i] * L[i] * Ng * csi)
 
         #TODO: Change this implementation to the ifxl() function for readability. Or don't.
         if (mdot_ger[i] < AI[i]):
@@ -144,6 +148,8 @@ def calculate_pressure_parameters(N, motor_data):
         # ic(i,rdot[i])
         # ic(i,m_sto[i])
 
+    A_burn_max = max(A_burn)
+    ic(A_burn_max)
     t_inc = 0.0001
     tbout = t[-1]
     pbout = Pc_Mpa[-1]
@@ -198,7 +204,7 @@ def calculate_pressure_parameters(N, motor_data):
     # Plotting pressure x time
 
     
-    return t,Pc_Mpa,k,tbout,r_avg,m_grain[0]
+    return t,Pc_Mpa,k,tbout,r_avg,m_grain[0],
 
 
 
