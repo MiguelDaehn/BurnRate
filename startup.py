@@ -149,7 +149,7 @@ def find_kn_max(prop_type,P_target):
 def main():
     # ic(find_M2(6.278, 1.137))
 
-    ic(find_kn_max('kn'+'dx',1.0))
+    ic(find_kn_max('kn'+'dx',2.0))
 
     return 0
 
