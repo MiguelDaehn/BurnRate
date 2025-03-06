@@ -1,18 +1,16 @@
-import matplotlib.pyplot as plt
-import numpy as np
-
-from pressure import calculate_pressure_parameters
 from startup import *
 from burnrate import *
 from thrust import *
 from motor import *
+from plots import *
+
 
 # TODO:
 #  1:
 #  Change the updating of the values in the for loops from directly altering the formula
 #  to using lambda functions, to keep it neat.
 #  2:
-#  Add SRM's calculation of optimal thoaat diameter for the pressure.
+#  Add SRM's calculation of optimal throat diameter for the pressure.
 #  3:
 #  Correct the error, discontinuity that occurs
 #  when pressure drops to 0. just set ds/dt = 0.
@@ -21,7 +19,7 @@ from motor import *
 #  5:
 #  fit the power law https://www.youtube.com/watch?v=wujirumjHxU
 #  6:
-#  Add a function that takes initial parameters such as a Diametere
+#  Add a function that takes initial parameters such as a Diameter
 #  And returns ALL needed parameters that can be calculated quickly
 #  In order to declutter other functions (having calculations in them that don't serve the main purpose)
 #  7:
@@ -35,26 +33,7 @@ from motor import *
 #  YOU NEED TO FIX THE CF (THRUST COEFFICIENT) SOONER RATHER THAN LATER THIS IS A SERIOUS ISSUE
 #  10: add an eng(motor, path) that creates a .eng file for the motor at the path (such as the openrocket folder for convenience)
 
-def plt_m_grains(N,id_prop,arr_props,motor,eta_noz=0.85,AeAt=6.3):
-    for prop in arr_props:
-        motor[id_prop] = prop
-        F,Pc,t,Cf = calculate_thrust(N,motor,eta_noz,AeAt)
-        plt.figure(1)
-        plt.plot(t,F)
-        plt.figure(2)
-        plt.plot(t,Pc)
-    plt.grid(True)
-    plt.show()
 
-def plt_AeAt(N,arr_aeat,motor,eta_noz=0.85):
-    for aeat in arr_aeat:
-        F,Pc,t,Cf = calculate_thrust(N,motor,eta_noz,aeat)
-        plt.figure(1)
-        plt.plot(t,F)
-        plt.figure(2)
-        plt.plot(t, Cf)
-    plt.grid(True)
-    plt.show()
 
 def main():
 
@@ -71,26 +50,42 @@ def main():
     id_motor = 1
     motor = mot(id_motor)
 
+    # Testing with varying lengths---//--//---//--//---//--//---//--//---//--//---//--//---//--//---//--//---//--//
     # array_L = np.linspace(20,60,10)
     # id_prop = 4
     # plt_m_grains(N,id_prop,array_L,motor,eta_noz=0.85,AeAt=6.3)
 
-    # array_AeAt = np.linspace(1, 2, 100)
-    # plt_AeAt(N, array_AeAt, motor, eta_noz=0.85)
+    # Testing with varying expansion ratios ---//--//---//--//---//--//---//--//---//--//---//--//---//--//---//--//---//--//
+        # array_AeAt = np.linspace(1, 6.5, 100)
+        # plt_AeAt(N, array_AeAt, motor, eta_noz=0.85)
 
-    array_Di = np.linspace(5,35,100)
-    id_prop = 6
-    plt_m_grains(N,id_prop,array_Di,motor,eta_noz=0.85,AeAt=6.3)
+    # Test with 35 different inner diameter values for the grains---//--//---//--//---//--//---//--//---//--//---//--//---//--//---//--//---//--//
+    # array_Di = np.linspace(5,35,100)
+    # id_prop = 6
+    # plt_m_grains(N,id_prop,array_Di,motor,eta_noz=0.85,AeAt=6.3)
 
 
-    # Test functions
+    # Test functions---//--//---//--//---//--//---//--//---//--//---//--//---//--//---//--//---//--//
 
     # test_BR_from_pressure(id_file,id_motor,p_min=3.5,p_max=4.5)
     # test_br_multiple()
     t, Pc, k, tbout, r_avg, m_grain0 = calculate_pressure_parameters(int(N), motor)
-    # thrust_pressure(N,motor,6.278)
+    F, Pc_MPa, t, Cf = calculate_thrust(N,motor,0.85,6.278)
+    data_01 = np.column_stack((t,F))
 
+    # New functions ---//--//---//--//---//--//---//--//---//--//---//--//---//--//---//--//---//--//
+    info_01 = {'filename'           : 'nome_placeholder',
+               'name'               : 'Canards_01',
+               'outer_diameter'     : '45.0',
+               'length'             : '314.0',
+               'delay_charge_time'  : 'P',
+               'propellant_mass'    : '0.67',
+               'total_mass'         : '0.67',
+               'manufacturer'       : 'TauRocketTeamA'}
 
+    path_thrustcurves = '/home/kanamori/.openrocket/ThrustCurves/'
+
+    save_array_to_eng_file(data_01, info_01, path_thrustcurves)
 
     return 0
 

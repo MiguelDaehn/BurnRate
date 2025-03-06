@@ -20,6 +20,7 @@ Ru = 8314.34 #kg/mol-K
 patm = 0.101325 #MPa
 patm_pa = patm*1e6
 g0 = 9.80665
+
 def ar(lista):
     return np.array(lista)
 
@@ -116,14 +117,40 @@ dict_prop = {'kndx': 0, 'knsb': 1, 'knsu':2,'kner': 3, 'knmn': 4, 'knfr':5,'knps
 # DEPRECATED: now using properties_table
 # rho_prop = {'knsu': 1.889, 'knsb': 1.841, 'kner': 1.820, 'kndx': 1.879, 'knmn': 1.854, 'knpsb': 1.923}
 properties_path = 'data/properties.csv'
-
 properties_table = np.loadtxt(properties_path, delimiter=',', skiprows=1, usecols=range(1, 8))
-# ic(properties_table)
 
+KN_table_path = 'data/KN_table.csv'
+KN_table = np.loadtxt(KN_table_path, delimiter=',', skiprows=1, usecols=range(0, 7))
 
+# ic(KN_table)
+
+def find_kn_max(prop_type,P_target):
+    '''PROP_TYPE: "KNSU", "KNSB", "KNDX",...'''
+    '''P_TARGET: UNITS IN MPa'''
+
+    prop = dict_prop[prop_type.lower()]
+
+    if prop>=1:
+        prop+=2
+
+    if prop == 0:
+        if (P_target>2.758) and (P_target<=5.861):
+            prop = 1
+        if P_target>5.861:
+            prop = 2
+    ic(prop)
+    kn_f = lambda P,a,b,c,d,e,f,g: a + b*P**1+ c*P**2 + d*P**3 + e*P**4 + f*P**5 + g*P**6
+
+    a,b,c,d,e,f,g = KN_table[prop,:]
+    kn_max = kn_f(P_target,a,b,c,d,e,f,g)
+
+    return kn_max
 
 def main():
     # ic(find_M2(6.278, 1.137))
+
+    ic(find_kn_max('kn'+'dx',1.0))
+
     return 0
 
 
