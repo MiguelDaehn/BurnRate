@@ -1,7 +1,3 @@
-import matplotlib.pyplot as plt
-import numpy as np
-
-from pressure import calculate_pressure_parameters
 from startup import *
 from burnrate import *
 from thrust import *

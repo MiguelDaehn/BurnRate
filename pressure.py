@@ -57,31 +57,31 @@ def calculate_pressure_parameters(N, motor_data):
     s = np.linspace(0, tw0, N)
     incs = s[1] - s[0]
 
-    t = np.zeros_like(s)
-    DI = np.zeros_like(s)
-    DE = np.zeros_like(s)
-    L = np.zeros_like(s)
-    TW = np.zeros_like(s)
-    A_duct = np.zeros_like(s)
-    A_duct_t = np.zeros_like(s)
-    AI = np.zeros_like(s)
-    Pc_pa = np.ones_like(s) * patm * 1e6
-    rho_prod = np.zeros_like(s)
-    m_sto = np.zeros_like(s)
-    m_stodot = np.zeros_like(s)
-    V_g = np.zeros_like(s)
-    V_free = np.ones_like(s) * Vc
-    Pc_Mpa = np.ones_like(s) * patm
-    Pc_Mpa2 = np.zeros_like(s)
+    t           = np.zeros_like(s)
+    DI          = np.zeros_like(s)
+    DE          = np.zeros_like(s)
+    L           = np.zeros_like(s)
+    TW          = np.zeros_like(s)
+    A_duct      = np.zeros_like(s)
+    A_duct_t    = np.zeros_like(s)
+    AI          = np.zeros_like(s)
+    rho_prod    = np.zeros_like(s)
+    m_sto       = np.zeros_like(s)
+    m_stodot    = np.zeros_like(s)
+    V_g         = np.zeros_like(s)
+    Pc_Mpa2     = np.zeros_like(s)
     mdot_nozzle = np.zeros_like(s)
-    mdot_ger = np.zeros_like(s)
-    m_grain = np.zeros_like(s)
-    rdot = np.zeros_like(s)
+    mdot_ger    = np.zeros_like(s)
+    m_grain     = np.zeros_like(s)
+    rdot        = np.zeros_like(s)
+    Pc_pa       = np.ones_like(s) * patm * 1e6
+    V_free      = np.ones_like(s) * Vc
+    Pc_Mpa      = np.ones_like(s) * patm
 
-    DI[0] = Di
-    DE[0] = De
-    L[0] = L0 * Ng
-    TW[0] = tw0
+    DI[0]   = Di
+    DE[0]   = De
+    L[0]    = L0 * Ng
+    TW[0]   = tw0
 
     # Note:
     # Here I'm assuming that the grain outer diameter is the case inner diameter
@@ -89,15 +89,15 @@ def calculate_pressure_parameters(N, motor_data):
     # area through which the gasses can flow so I'll take the initial grain outer diameter as the maximum
     # flowing internal d1iameter.
 
-    A_duct[0] = (pi / 4) * (Di ** 2)
+    A_duct[0]   = (pi / 4) * (Di ** 2)
     A_duct_t[0] = A_duct[0] / At
     # Ignore: Pc_pa[0] += rho_prod[i]*ratto
 
-    V_g[0] = Vg0
-    V_free[0] = Vc - Vg0
-    m_grain[0] = rho_g * Vg0
-    rdot[0] = rdp(prop, patm)
-    Pc_Mpa2[0] = patm
+    V_g[0]      = Vg0
+    V_free[0]   = Vc - Vg0
+    m_grain[0]  = rho_g * Vg0
+    rdot[0]     = rdp(prop, patm)
+    Pc_Mpa2[0]  = patm
 
     # ic(incs)
     for i in range(1, N):
