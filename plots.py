@@ -57,21 +57,6 @@ def save_array_to_eng_file(data, motor_info,path):
 
 
 def main():
-    # Example usage:
-    data = np.array([[1.0, 2.0], [3.0, 4.0], [5.0, 6.0]])  # Example 2D array
-
-    info_01 = {'filename'   :'output',
-        'name'              :'Canards_01',
-        'outer_diameter'    :'45.0',
-        'length'            :'314.0',
-        'delay_charge_time' :'P',
-        'propellant_mass'   :'0.67',
-        'total_mass'        :'0.67',
-        'manufacturer'      :'TauRocketTeamA'}
-
-    path_thrustcurves = '/home/kanamori/.openrocket/ThrustCurves/'
-
-    save_array_to_eng_file(data, info_01, path_thrustcurves)
 
     return 0
 
