@@ -43,7 +43,7 @@ def main():
     # Discretization
 
     # N = 834 #Discretization used by SRM, useful for checking / comparing values
-    N = 1000
+    N = 2000
 
 
     # Motor identification and definition
