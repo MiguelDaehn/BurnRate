@@ -43,10 +43,10 @@ def main():
     # Discretization
 
     # N = 834 #Discretization used by SRM, useful for checking / comparing values
-    N = 100 * 20
+    N = 100 * 206
 
 
-    # Motor identification and definition
+    # Motor identification and definitionaaa
 
     id_file = "q2OM" # Another option would be 'nakka'. Change id_motor to 2, accordingly, for accurate results
 
