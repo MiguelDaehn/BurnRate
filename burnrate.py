@@ -160,12 +160,13 @@ def test_BR_from_pressure(id_file,id_motor,p_min=3.5,p_max=4.5):
        y0f=[0.95 * min(BR[np.where(BR > 0)]), 1.05 * max(BR[np.where(BR < 40)])])
 
 def test_br_multiple(arr_str=ar(['knsb', 'knsu'])):
-    Prange = np.linspace(0.12, 10, 10000)
+    Prange = np.linspace(0.101, 10, 10000)
     arrstr = ar(arr_str)
 
     for rd in arrstr:
         Rd = ar([rdp(rd, p) for p in Prange])
         plt.plot(Prange, Rd)
+        print(f'{rd} at 1 atm: {rdp(rd,0.101)}')
 
     plt.xlabel('Pressure [MPa]');plt.ylabel('R_dot [mm/s]');plt.title('Rd Values vs Pressure')
     plt.legend();plt.grid()

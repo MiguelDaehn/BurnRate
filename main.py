@@ -50,7 +50,7 @@ def main():
 
     id_file = "q2OM" # Another option would be 'nakka'. Change id_motor to 2, accordingly, for accurate results
 
-    id_motor = 1
+    id_motor = 4
     motor = mot(id_motor)
 
     # Testing with varying lengths---//--//---//--//---//--//---//--//---//--//---//--//---//--//---//--//---//--//
@@ -77,19 +77,21 @@ def main():
     data_01 = np.column_stack((t,F))
 
     # New functions ---//--//---//--//---//--//---//--//---//--//---//--//---//--//---//--//---//--//
-    info_01 = {'filename'           : 'nome_placeholder',
-               'name'               : 'Canards_01',
-               'outer_diameter'     : '45.0',
-               'length'             : '314.0',
+    info_01 = {'filename'           : '_',
+               'name'               : '_',
+               'outer_diameter'     : '24.12',
+               'length'             : '81.14',
                'delay_charge_time'  : 'P',
-               'propellant_mass'    : '0.67',
-               'total_mass'         : '0.67',
-               'manufacturer'       : 'TauRocketTeamA'}
+               'propellant_mass'    : '0.03918',
+               'total_mass'         : '0.03918',
+               'manufacturer'       : 'TauRocketTeam'}
 
     path_thrustcurves = '/home/kanamori/.openrocket/ThrustCurves/'
 
     save_array_to_eng_file(data_01, info_01, path_thrustcurves)
-
+    pl(t,F)
+    pl(t,Pc_MPa)
+    test_br_multiple(ar(['knsu']))
     return 0
 
 

@@ -80,20 +80,21 @@ def mot(id_motor):
         P_target = 4.5
         csi, esi, osi = [1, 1, 0]
     elif id_motor == 4:
-        prop = 'knsb'
-        Dt = 9.659
-        Rho_pct = 0.95
-        Ng = 4
-        L = 50.0
-        De = 45.0
-        Di = 25.0
+        prop = 'knsu'
+        Dt = 5.0
+        Rho_pct = 0.9
+        Ng = 1
+        L = 81.14
+        De = 24.12
+        Di = 5.0
         p_min = 0
         p_max = 10
-        P_target = 4.5
-        csi, esi, osi = [1, 1, 0]
+        P_target = 2
+        csi, esi, osi = [1, 0, 0]
     else:
         id_motor_new = int(input('Please select one of the available motors, 1,2,3,4...: '))
         return mot(id_motor_new)
+    prop = prop.lower()
     dp = dict_prop[prop]
     rhoideal = properties_table[0][dp]
 
