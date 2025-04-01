@@ -50,7 +50,7 @@ def main():
 
     id_file = "q2OM" # Another option would be 'nakka'. Change id_motor to 2, accordingly, for accurate results
 
-    id_motor = 4
+    id_motor = 5
     motor = mot(id_motor)
 
     # Testing with varying lengths---//--//---//--//---//--//---//--//---//--//---//--//---//--//---//--//---//--//
@@ -73,25 +73,33 @@ def main():
     # test_BR_from_pressure(id_file,id_motor,p_min=3.5,p_max=4.5)
     # test_br_multiple()
     t, Pc, k, tbout, r_avg, m_grain0 = calculate_pressure_parameters(int(N), motor)
-    F, Pc_MPa, t, Cf = calculate_thrust(N,motor,0.85,6.278)
+
+    # AeAt = 6.278
+    AeAt = 2.39
+    F, Pc_MPa, t, Cf = calculate_thrust(N,motor,0.85,AeAt)
     data_01 = np.column_stack((t,F))
 
     # New functions ---//--//---//--//---//--//---//--//---//--//---//--//---//--//---//--//---//--//
-    info_01 = {'filename'           : '_',
-               'name'               : '_',
-               'outer_diameter'     : '24.12',
-               'length'             : '81.14',
+    info_01 = {'filename'           : 'PVC_05',
+               'name'               : 'PVC_05',
+               'outer_diameter'     : str(motor[5]),
+               'length'             : str(motor[4]),
                'delay_charge_time'  : 'P',
-               'propellant_mass'    : '0.03918',
-               'total_mass'         : '0.03918',
+               'propellant_mass'    : str(m_grain0),
+               'total_mass'         : str(m_grain0),
                'manufacturer'       : 'TauRocketTeam'}
 
     path_thrustcurves = '/home/kanamori/.openrocket/ThrustCurves/'
 
     save_array_to_eng_file(data_01, info_01, path_thrustcurves)
+
+    # Plots both Pressure and Thrust graphs
     pl(t,F)
     pl(t,Pc_MPa)
-    test_br_multiple(ar(['knsu']))
+    ic(max(F),max(Pc_MPa))
+
+    # Plots burn rate as a function of pressure for the desired propellant
+    # test_br_multiple(ar(['knsu']))
     return 0
 
 
