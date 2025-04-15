@@ -50,7 +50,7 @@ def main():
 
     id_file = "q2OM" # Another option would be 'nakka'. Change id_motor to 2, accordingly, for accurate results
 
-    id_motor = 5
+    id_motor = 7
     motor = mot(id_motor)
 
     # Testing with varying lengths---//--//---//--//---//--//---//--//---//--//---//--//---//--//---//--//---//--//
@@ -75,13 +75,15 @@ def main():
     t, Pc, k, tbout, r_avg, m_grain0 = calculate_pressure_parameters(int(N), motor)
 
     # AeAt = 6.278
-    AeAt = 2.39
-    F, Pc_MPa, t, Cf = calculate_thrust(N,motor,0.85,AeAt)
+    # AeAt = 2.39 #PVC_05
+    AeAt = 1.505
+    F, Pc_MPa, t, Cf = calculate_thrust(N,motor,0.9533,AeAt)
     data_01 = np.column_stack((t,F))
 
     # New functions ---//--//---//--//---//--//---//--//---//--//---//--//---//--//---//--//---//--//
-    info_01 = {'filename'           : 'PVC_05',
-               'name'               : 'PVC_05',
+    nome_do_arquivo = 'Neutrino_Quente_01'
+    info_01 = {'filename'           : nome_do_arquivo,
+               'name'               : nome_do_arquivo,
                'outer_diameter'     : str(motor[5]),
                'length'             : str(motor[4]),
                'delay_charge_time'  : 'P',
