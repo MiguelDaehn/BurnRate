@@ -25,7 +25,11 @@ def calculate_pressure_parameters(N, motor_data):
     # Lc = Ng*(L0+L_oring)
     Lc = (Ng * L0) * 1.2
     Vc = (Lc * (pi / 4) * De ** 2) / 1000 ** 3
-    dp = dict_prop[prop]
+
+    dp = dict_prop.get(prop, 2)  # Returns 2 if key doesn't exist
+    if dp == 2:
+        print(f"Warning: If you are not using KNSU, '{prop}' not found. Defaulting to dp = 2.")
+
     rat = Ru / properties_table[2][dp]
     # Manipulate 'nuc' to reach the calculated value of c*
     # if calculating from experimental pressure values
@@ -39,7 +43,9 @@ def calculate_pressure_parameters(N, motor_data):
     pbd = 0
 
     tw0 = (De - Di) / 2
-    dp = dict_prop[prop]
+    dp = dict_prop.get(prop, 2)  # Returns 2 if key doesn't exist
+    if dp == 2:
+        print(f"Warning: If you are not using KNSU, '{prop}' not found. Defaulting to dp = 2.")
     rhoideal = properties_table[0][dp]
 
     rho_g = 1000 * rhoideal * Rho_pct

@@ -39,8 +39,11 @@ def BR_from_pressure(id, motor_data):
     De = motor_data[5].astype(float)
     Di = motor_data[6].astype(float)
     w0 = (De - Di) / 2
-    dp = dict_prop[prop]
+    dp = dict_prop.get(prop, 2)  # Returns 2 if key doesn't exist
+    if dp == 2:
+        print(f"Warning: If you are not using KNSU, '{prop}' not found. Defaulting to dp = 2.")
     rhoideal = properties_table[0][dp]
+
     rho_g = rho_pct * rhoideal
 
     At = pi * (Dt / 2) ** 2
@@ -144,6 +147,8 @@ def rdp(prop, P=1.0):
 
     if result is None:
         ic(P)
+
+        print(f'Propellant:{prop}')
         raise ValueError('ERROR: no adequate pressure interval found!')
     if prop=='knsu_geprop':
         # ic(result)#,row[2],row[3])
@@ -154,6 +159,8 @@ def rdp(prop, P=1.0):
 
 def test_BR_from_pressure(id_file,id_motor,p_min=3.5,p_max=4.5):
     motor = mot(id_motor)
+    motor[7]=p_min
+    motor[8]=p_max
     Pc, BR, pars = BR_from_pressure(id_file, motor)
     plt.plot(Pc, target_func(Pc, *pars), '--')
     pl(Pc, BR, 'Pressão na Câmara [MPa]', 'Burn Rate [mm/s]',
