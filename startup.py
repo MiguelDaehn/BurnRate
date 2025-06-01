@@ -1,5 +1,5 @@
 import numpy as np
-from numpy import exp,sin, cos, tan, arcsin, arccos, arctan, pi,where
+from numpy import exp, sin, cos, tan, arcsin, arccos, arctan, pi, where
 from scipy.optimize import curve_fit
 
 import matplotlib.pyplot as plt
@@ -15,10 +15,21 @@ warnings.filterwarnings("ignore", category=RuntimeWarning)
 
 path_thrustcurves = '/home/kanamori/.openrocket/ThrustCurves/'
 
-Ru = 8314.34 #kg/mol-K
-patm = 0.101325 #MPa
-patm_pa = patm*1e6
+Ru = 8314.34  # kg/mol-K
+patm = 0.101325  # MPa
+patm_pa = patm * 1e6
 g0 = 9.80665
+
+dict_prop = {'kndx': 0, 'knsb': 1, 'knsu': 2, 'kner': 3, 'knmn': 4, 'knfr': 5, 'knpsb': 6, 'knsu_geprop': 7}
+
+# DEPRECATED: now using properties_table
+# rho_prop = {'knsu': 1.889, 'knsb': 1.841, 'kner': 1.820, 'kndx': 1.879, 'knmn': 1.854, 'knpsb': 1.923}
+properties_path = 'data/properties.csv'
+properties_table = np.loadtxt(properties_path, delimiter=',', skiprows=1, usecols=range(1, 9))
+
+KN_table_path = 'data/KN_table.csv'
+KN_table = np.loadtxt(KN_table_path, delimiter=',', skiprows=1, usecols=range(0, 7))
+
 
 def ar(lista):
     return np.array(lista)
@@ -30,9 +41,10 @@ def err(x1, x2):
     return abs((x1 - x2) / x1)
 
 
-def err_arr(value,array):
-    er = ar([err(value,i) for i in array])
+def err_arr(value, array):
+    er = ar([err(value, i) for i in array])
     return er
+
 
 def where_interval(Array, min_val, max_val):
     Array = ar(Array)
@@ -44,11 +56,13 @@ def where_interval(Array, min_val, max_val):
 
     return C
 
-def find_er(value,array):
+
+def find_er(value, array):
     '''Finds the id of the value with the mininum relative error to the desired value.'''
-    er = err_arr(value,array)
+    er = err_arr(value, array)
     K = where(min(er))[0]
     return K
+
 
 def LoadData(type, id, format='csv'):
     path_csv = 'data/' + type + '_' + id + '.' + format
@@ -62,7 +76,7 @@ def LoadData(type, id, format='csv'):
     return T, D1
 
 
-def pl(x, y, lx='', ly='', tit='', labelf='', x0f=[0, None], y0f=[0, None], log=0,show=1):
+def pl(x, y, lx='', ly='', tit='', labelf='', x0f=[0, None], y0f=[0, None], log=0, show=1):
     if log == 0:
         plt.plot(x, y, label=labelf)
         pass
@@ -75,15 +89,17 @@ def pl(x, y, lx='', ly='', tit='', labelf='', x0f=[0, None], y0f=[0, None], log=
     plt.ylim(y0f[0], y0f[1])
     plt.xlim(x0f[0], x0f[1])
     plt.legend()
-    if show==1:
+    if show == 1:
         plt.show()
     return
 
-def pl_m(x,y_arr):
+
+def pl_m(x, y_arr):
     for row in y_arr:
-        pl(x,row,x0f=[None, None], y0f=[None, None],show=0)
+        pl(x, row, x0f=[None, None], y0f=[None, None], show=0)
     plt.show()
     return 0
+
 
 # t = np.linspace(0,10,100)
 # v1 = 5
@@ -92,15 +108,14 @@ def pl_m(x,y_arr):
 # d2 = v2*t
 # pl_m(t,ar([d1,d2]))
 
-
-
-def ifxl(cond,v_pos,v_neg):
+def ifxl(cond, v_pos, v_neg):
     if cond:
         return v_pos
     else:
         return v_neg
 
-def find_M2(AeAt,k):
+
+def find_M2(AeAt, k):
     AeAt = float(AeAt)
     ME = lambda Me: AeAt - 1 / Me * ((1 + (k - 1) / 2 * Me ** 2) / (1 + (k - 1) / 2)) ** ((k + 1) / (2 * (k - 1)))
 
@@ -109,7 +124,7 @@ def find_M2(AeAt,k):
     ID = np.argmin(Mea)
     val = M2[ID]
 
-    M2 = np.linspace(val-1,val+1,10000)
+    M2 = np.linspace(val - 1, val + 1, 10000)
     Mea = ar([abs(ME(i)) for i in M2])
     ID = np.argmin(Mea)
     val = M2[ID]
@@ -117,47 +132,36 @@ def find_M2(AeAt,k):
     return val
 
 
-
-
-dict_prop = {'kndx': 0, 'knsb': 1, 'knsu':2,'kner': 3, 'knmn': 4, 'knfr':5,'knpsb': 6,'knsu_geprop':7}
-
-# DEPRECATED: now using properties_table
-# rho_prop = {'knsu': 1.889, 'knsb': 1.841, 'kner': 1.820, 'kndx': 1.879, 'knmn': 1.854, 'knpsb': 1.923}
-properties_path = 'data/properties.csv'
-properties_table = np.loadtxt(properties_path, delimiter=',', skiprows=1, usecols=range(1, 9))
-
-KN_table_path = 'data/KN_table.csv'
-KN_table = np.loadtxt(KN_table_path, delimiter=',', skiprows=1, usecols=range(0, 7))
-
-def find_kn_max(prop_type,P_target):
+def find_kn_max(prop_type, P_target):
     '''PROP_TYPE: "KNSU", "KNSB", "KNDX",...'''
     '''P_TARGET: UNITS IN MPa'''
 
     prop = dict_prop[prop_type.lower()]
 
-    if prop>=1:
-        prop+=2
+    if prop >= 1:
+        prop += 2
 
     if prop == 0:
-        if (P_target>2.758) and (P_target<=5.861):
+        if (P_target > 2.758) and (P_target <= 5.861):
             prop = 1
-        if P_target>5.861:
+        if P_target > 5.861:
             prop = 2
     ic(prop)
-    kn_f = lambda P,a,b,c,d,e,f,g: a + b*P**1+ c*P**2 + d*P**3 + e*P**4 + f*P**5 + g*P**6
+    kn_f = lambda P, a, b, c, d, e, f,
+                  g: a + b * P ** 1 + c * P ** 2 + d * P ** 3 + e * P ** 4 + f * P ** 5 + g * P ** 6
 
-    a,b,c,d,e,f,g = KN_table[prop,:]
-    kn_max = kn_f(P_target,a,b,c,d,e,f,g)
+    a, b, c, d, e, f, g = KN_table[prop, :]
+    kn_max = kn_f(P_target, a, b, c, d, e, f, g)
 
     return kn_max
+
 
 def main():
     # ic(find_M2(6.278, 1.137))
 
-    ic(find_kn_max('kn'+'dx',2.0))
+    ic(find_kn_max('kn' + 'dx', 2.0))
 
     return 0
-
 
 
 if __name__ == '__main__':
