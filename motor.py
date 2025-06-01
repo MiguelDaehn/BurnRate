@@ -62,8 +62,8 @@ def mot(id_motor):
         L = 65.0
         De = 43.1
         Di = 13.88
-        p_min = 0
-        p_max = 10
+        p_min = 3.5
+        p_max = 6
         P_target = 4.5
         csi, esi, osi = [1, 1, 0]
 
@@ -141,21 +141,35 @@ def mot(id_motor):
         csi, esi, osi = [1, 1, 0]
     elif id_motor == 9:
         prop = 'knsu'
-        Dt = 12.54*0.9
+        Dt = 12.54
         Rho_pct = 0.9073
-        Ng = 1
-        L = (44.74+83.46)
+        Ng = 2
+        L = (44.74+83.46)/2
         De = 48.34
         Di = 17.44
         p_min = 0
         p_max = 10
         P_target = 1.091
         csi, esi, osi = [1, 1, 0]
+    elif id_motor == 10:
+        prop = 'knsu_geprop_03ficticio'
+        Dt = 12.54
+        Rho_pct = (0.89)
+        Ng = 2
+        L = (44.74+83.46)/2
+        De = 48.34
+        Di = 17.44
+        p_min = 1.2
+        p_max = 2
+        P_target = 1.091
+        csi, esi, osi = [1, 1, 0]
     else:
         id_motor_new = int(input('Please select one of the available motors, 1,2,3,4...: '))
         return mot(id_motor_new)
     prop = prop.lower()
-    dp = dict_prop[prop]
+    dp = dict_prop.get(prop, 2)  # Returns 2 if key doesn't exist
+    if dp == 2:
+        print(f"Warning: If you are not using KNSU, '{prop}' not found. Defaulting to dp = 2.")
     rhoideal = properties_table[0][dp]
 
 
