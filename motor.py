@@ -127,6 +127,30 @@ def mot(id_motor):
         p_max = 10
         P_target = 1.091
         csi, esi, osi = [1, 1, 0]
+    elif id_motor == 8:
+        prop = 'knsu'
+        Dt = 12.54
+        Rho_pct = 0.8961
+        Ng = 2
+        L = (44.74+83.46)/2
+        De = 48.34
+        Di = 17.44
+        p_min = 0
+        p_max = 10
+        P_target = 1.091
+        csi, esi, osi = [1, 1, 0]
+    elif id_motor == 9:
+        prop = 'knsu'
+        Dt = 12.54*0.9
+        Rho_pct = 0.9073
+        Ng = 1
+        L = (44.74+83.46)
+        De = 48.34
+        Di = 17.44
+        p_min = 0
+        p_max = 10
+        P_target = 1.091
+        csi, esi, osi = [1, 1, 0]
     else:
         id_motor_new = int(input('Please select one of the available motors, 1,2,3,4...: '))
         return mot(id_motor_new)

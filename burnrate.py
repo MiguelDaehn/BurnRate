@@ -124,7 +124,7 @@ rd_kner = pp('kner')
 rd_knpsb = pp('knpsb')
 
 
-def rdp(prop, P):
+def rdp(prop, P=1.0):
     rd_prop = pp(prop)
     if P > 1e5:
         P = P * 1e-6
@@ -139,12 +139,15 @@ def rdp(prop, P):
             raise ValueError("Row is not an array.")
 
         if (P >= row[0]) and (P <= row[1]):  # Use 'and' for logical comparison
-            result = row[2] * P ** row[3]  # Use row[2] instead of rd[2]
+            result = row[2] * P ** row[3] # Use row[2] instead of rd[2]
             break  # Exit the loop once the condition is met
 
     if result is None:
+        ic(P)
         raise ValueError('ERROR: no adequate pressure interval found!')
-
+    if prop=='knsu_geprop':
+        # ic(result)#,row[2],row[3])
+        pass
     return result
 
 
@@ -159,8 +162,10 @@ def test_BR_from_pressure(id_file,id_motor,p_min=3.5,p_max=4.5):
        x0f=[0.95 * p_min, 1.0 * p_max],
        y0f=[0.95 * min(BR[np.where(BR > 0)]), 1.05 * max(BR[np.where(BR < 40)])])
 
-def test_br_multiple(arr_str=ar(['knsb', 'knsu'])):
-    Prange = np.linspace(0.101, 10, 10000)
+def plot_br_multiple(arr_str=ar(['knsb', 'knsu']),p_int=[0.1 , 10.0]):
+    p_min = p_int[0]
+    p_max = p_int[1]
+    Prange = np.linspace(p_min, p_max, 1000)
     arrstr = ar(arr_str)
 
     for rd in arrstr:

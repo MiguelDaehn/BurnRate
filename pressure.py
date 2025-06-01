@@ -116,8 +116,10 @@ def calculate_pressure_parameters(N, motor_data):
         m_grain[i] = rho_g * (V_g[i])
 
         # Above this line, all are functional --/---/--/---/--/---/--/---/--/---/--/---/
-
+        # ic(Pc_pa,Pc_Mpa,Pc_Mpa2)
         rdot[i] = rdp(prop, Pc_Mpa2[i])
+
+
         t[i] = incs / rdot[i] + t[i - 1]
 
         AI[i] = (Pc_Mpa2[i] - patm) * 1e6 * A_star * par_AI
@@ -149,15 +151,15 @@ def calculate_pressure_parameters(N, motor_data):
         # ic(i,m_sto[i])
 
     A_burn_max = max(A_burn)
-    ic(A_burn_max)
-    t_inc = 0.0001
+    # ic(A_burn_max)
+    t_inc = 0.00001
     tbout = t[-1]
     pbout = Pc_Mpa[-1]
     # ic(tbout,pbout,ratto,A_star,Vc,c_star)
     # breakpoint()
 
     err_MPa = 1.0
-    n = 1000
+    n = 10000
 
 
     # ic(Pc_Mpa[-1])
@@ -169,9 +171,9 @@ def calculate_pressure_parameters(N, motor_data):
         Pc_pos = pbout*np.exp(-ratto*A_star*(t[-1]-tbout)/(Vc*c_star))
         Pc_Mpa = np.append(Pc_Mpa,Pc_pos)
 
-        finish = time.time()
-        if finish - start>1:
-            break
+        # finish = time.time()
+        # if finish - start>1:
+        #     break
 
     r_avg = np.average(rdot)
 
