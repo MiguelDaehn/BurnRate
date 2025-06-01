@@ -1,8 +1,6 @@
 from startup import *
 from burnrate import *
 
-
-
 def calculate_pressure_parameters(N, motor_data):
     prop = motor_data[0].astype(str)
 

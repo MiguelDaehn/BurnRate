@@ -62,7 +62,7 @@ def LoadData(type, id, format='csv'):
     return T, D1
 
 
-def pl(x, y, lx='', ly='', tit='', labelf='', x0f=[0, None], y0f=[0, None], log=0):
+def pl(x, y, lx='', ly='', tit='', labelf='', x0f=[0, None], y0f=[0, None], log=0,show=1):
     if log == 0:
         plt.plot(x, y, label=labelf)
         pass
@@ -75,13 +75,23 @@ def pl(x, y, lx='', ly='', tit='', labelf='', x0f=[0, None], y0f=[0, None], log=
     plt.ylim(y0f[0], y0f[1])
     plt.xlim(x0f[0], x0f[1])
     plt.legend()
-    plt.show()
+    if show==1:
+        plt.show()
     return
 
 def pl_m(x,y_arr):
     for row in y_arr:
-        pl(x,row,x0f=[None, None], y0f=[None, None])
+        pl(x,row,x0f=[None, None], y0f=[None, None],show=0)
+    plt.show()
     return 0
+
+# t = np.linspace(0,10,100)
+# v1 = 5
+# v2 = 4
+# d1 = v1*t
+# d2 = v2*t
+# pl_m(t,ar([d1,d2]))
+
 
 
 def ifxl(cond,v_pos,v_neg):
