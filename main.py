@@ -7,9 +7,6 @@ from plots import *
 
 # TODO:
 #  1:
-#  Change the updating of the values in the for loops from directly altering the formula
-#  to using lambda functions, to keep it neat.
-#  2:
 #  Add SRM's calculation of optimal throat diameter for the pressure.
 #  3:
 #  Correct the error, discontinuity that occurs
@@ -17,8 +14,6 @@ from plots import *
 #  4:
 #  log scale graph not working. is it because the graph is in MPa? shouldn't be, right?
 #  5:
-#  fit the power law https://www.youtube.com/watch?v=wujirumjHxU
-#  6:
 #  Add a function that takes initial parameters such as a Diameter
 #  And returns ALL needed parameters that can be calculated quickly
 #  In order to declutter other functions (having calculations in them that don't serve the main purpose)
@@ -64,7 +59,7 @@ def main():
 
     # Testing with different propellants---------------------------------------------------------------------------------
     array_L = ar(['knsu','knsu_geprop_02']);id_prop = 0
-    plt_m_grains(N,id_prop,array_L,motor,eta_noz=0.85,AeAt=round((23.6/12.54)**2,1))
+    plt_m_grains(N,id_prop,array_L,motor,eta_noz=0.85,AeAt=round((23.6/12.54)**2,2))
 
     # Test with 35 different inner diameter values for the grains-------------------------------------------------------
     # array_Di = np.linspace(5,35,100)
