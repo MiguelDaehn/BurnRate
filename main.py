@@ -54,14 +54,14 @@ def main():
 
     # Finds the burn rate of a propellant given a .csv file with
     # time[s] and PRESSURE [MPa], a certain motor and a pressure range
-    test_BR_from_pressure(id_file,id_motor,p_min=0,p_max=2)
+    test_BR_from_pressure(id_file,id_motor,p_min=0.5,p_max=2)
 
 
     # Test functions---//--//---//--//---//--//---//--//---//--//---//--//---//--//---//--//---//--//
 
 
     # Testing with different propellants---//--//---//--//---//--//---//--//---//--//---//--//---//--//---//--//---//--//
-    array_L = ar(['knsu_geprop_02']);id_prop = 0
+    array_L = ar(['knsu','knsu_geprop_01','knsu_geprop_02']);id_prop = 0
     plt_m_grains(N,id_prop,array_L,motor,eta_noz=0.35,AeAt=(23.6/12.54)**2)
 
     # Test with 35 different inner diameter values for the grains---//--//---//--//---//--//---//--//---//--//---//--//---//--//---//--//---//--//

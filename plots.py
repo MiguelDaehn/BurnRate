@@ -9,8 +9,8 @@ def plt_m_grains(N,id_prop,arr_props,motor,eta_noz=0.85,AeAt=6.3):
         plt.plot(t,F)
         plt.figure(2)
         plt.plot(t,Pc)
-        plt.grid(True)
-        plt.show()
+    plt.grid(True)
+    plt.show()
 
 def plt_AeAt(N,arr_aeat,motor,eta_noz=0.85):
     '''Plots both Thrust (F) and Thrust Coefficient (CF) as a function of time'''
