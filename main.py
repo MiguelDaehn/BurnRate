@@ -46,28 +46,23 @@ def main():
 
     # Motor identification and definition
 
-    id_file = "pressao_teste_30_05"
-    id_file = "FICTICIO_pressao_teste_30_05"
-
-    id_motor = 10
-
-    # id_file = 'nakka'
-    # id_motor = 2
-
+    id_file = "pressao_teste_30_05";id_motor = 10
+    # id_file = "FICTICIO_pressao_teste_30_05";id_motor = 10
+    # id_file = "pressao_teste_30_05_ficticio12hz";id_motor = 10
+    # id_file = 'nakka'; id_motor = 2
     motor = mot(id_motor)
 
     # Finds the burn rate of a propellant given a .csv file with
     # time[s] and PRESSURE [MPa], a certain motor and a pressure range
-    test_BR_from_pressure(id_file,id_motor,p_min=0.0,p_max=2)
+    test_BR_from_pressure(id_file,id_motor,p_min=0,p_max=2)
 
 
     # Test functions---//--//---//--//---//--//---//--//---//--//---//--//---//--//---//--//---//--//
 
 
     # Testing with different propellants---//--//---//--//---//--//---//--//---//--//---//--//---//--//---//--//---//--//
-    array_L = ar(['knsu_geprop_04ficticio'])
-    id_prop = 0
-    plt_m_grains(N,id_prop,array_L,motor,eta_noz=0.85,AeAt=(23.6/12.54)**2)
+    array_L = ar(['knsu_geprop_02']);id_prop = 0
+    plt_m_grains(N,id_prop,array_L,motor,eta_noz=0.35,AeAt=(23.6/12.54)**2)
 
     # Test with 35 different inner diameter values for the grains---//--//---//--//---//--//---//--//---//--//---//--//---//--//---//--//---//--//
     # array_Di = np.linspace(5,35,100)
@@ -87,7 +82,9 @@ def main():
     # ic(max(F),max(Pc_MPa))
 
     # Plots burn rate as a function of pressure for the desired propellants
-    plot_br_multiple(ar(['knsu','knsu_geprop_03ficticio','knsu_geprop_04ficticio']), [0, 10])
+    plot_br_multiple(ar(['knsu','knsu_geprop_01','knsu_geprop_02']), [0, 10])
+    # plot_br_multiple(ar(['knsu','knsu_geprop_03ficticio','knsu_geprop_04ficticio']), [0, 10])
+    # plot_br_multiple(ar(['knsu', 'knsu_geprop_06ficticio']), [0, 10])
 
     # New functions ---//--//---//--//---//--//---//--//---//--//---//--//---//--//---//--//---//--//
     create_eng=0

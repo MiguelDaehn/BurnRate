@@ -11,8 +11,8 @@ def Delta_s(At, Ab, Pc, rho, cstar, delta_t):
     return delta_s
 
 
-def func_powerlaw(x, n, a):
-    return x ** n * a
+def func_powerlaw(x, a, n):
+    return a*(x ** n)
 
 
 target_func = func_powerlaw
@@ -103,12 +103,18 @@ def BR_from_pressure(id, motor_data):
 
     target_func = func_powerlaw
 
-    pars, sol0 = curve_fit(func_powerlaw, Pc, ds_dt, p0=np.asarray([4, 0.5]),maxfev=4000)
-    n, a = pars
+    pars, sol0 = curve_fit(func_powerlaw, Pc, ds_dt, p0=np.asarray([5, 0.5]),maxfev=10000)
+    a,n = pars
     print(f'a: {a}, \nn: {n}')
     plt.scatter(Pc, ds_dt, marker='*', color='red')
-    plt.plot(Pc, target_func(Pc, *pars), '--',label=f'{pars[1]}·P^{pars[0]}')
-    return Pc, ds_dt,pars
+    plt.plot(Pc, target_func(Pc, *pars), '--',label=f'{a}·P^{n}')
+
+    y_pred = func_powerlaw(Pc, a,n)
+    RSS = np.sum((ds_dt - y_pred) ** 2)
+    TSS = np.sum((ds_dt - np.mean(ds_dt)) ** 2)
+    R2 = 1 - (RSS / TSS)
+
+    return Pc, ds_dt,[a,n,R2]
 
 def pp(propt):
     rddatapath = 'data/BR_dict_'+propt+'.csv'
@@ -161,11 +167,11 @@ def test_BR_from_pressure(id_file,id_motor,p_min=3.5,p_max=4.5):
     motor = mot(id_motor)
     motor[7]=p_min
     motor[8]=p_max
-    Pc, BR, pars = BR_from_pressure(id_file, motor)
-    plt.plot(Pc, target_func(Pc, *pars), '--')
-    pl(Pc, BR, 'Pressão na Câmara [MPa]', 'Burn Rate [mm/s]',
-       'Taxa de regressão em função da pressão',
-       labelf=f'{pars[1]}·P^{pars[0]}', log=0,
+    Pc, BR, [a,n,R2] = BR_from_pressure(id_file, motor)
+    plt.plot(Pc, target_func(Pc, *[a,n]), '--')
+    pl(Pc, BR, 'Chamber Pressure [MPa]', 'Burn Rate [mm/s]',
+       f'Burn Rate as a function of Pressure - R²={round(R2,3)}',
+       labelf=f'{round(a,5)}·P^{round(n,5)}', log=0,
        x0f=[0.95 * p_min, 1.0 * p_max],
        y0f=[0.95 * min(BR[np.where(BR > 0)]), 1.05 * max(BR[np.where(BR < 40)])])
 
