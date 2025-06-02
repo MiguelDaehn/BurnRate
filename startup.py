@@ -115,6 +115,7 @@ def ifxl(cond, v_pos, v_neg):
         return v_neg
 
 
+
 def find_M2(AeAt, k):
     AeAt = float(AeAt)
     ME = lambda Me: AeAt - 1 / Me * ((1 + (k - 1) / 2 * Me ** 2) / (1 + (k - 1) / 2)) ** ((k + 1) / (2 * (k - 1)))
