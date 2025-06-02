@@ -62,7 +62,7 @@ def main():
 
     # Testing with different propellants---//--//---//--//---//--//---//--//---//--//---//--//---//--//---//--//---//--//
     array_L = ar(['knsu','knsu_geprop_01','knsu_geprop_02']);id_prop = 0
-    plt_m_grains(N,id_prop,array_L,motor,eta_noz=0.35,AeAt=(23.6/12.54)**2)
+    plt_m_grains(N,id_prop,array_L,motor,eta_noz=0.35,AeAt=round((23.6/12.54)**2,2))
 
     # Test with 35 different inner diameter values for the grains---//--//---//--//---//--//---//--//---//--//---//--//---//--//---//--//---//--//
     # array_Di = np.linspace(5,35,100)
