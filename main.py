@@ -44,47 +44,47 @@ def main():
     # N = 834 #Discretization used by SRM, useful for checking / comparing values
     N = 100000
 
-    # Motor identification and definition
+    # Motor identification and definition--//--//---//--//---//--//---//--//--//--//---//--//---//--//---//--//
 
     id_file = "knsu_geprop_02";id_motor = 10
     # id_file = 'nakka'; id_motor = 2
     motor = mot(id_motor)
 
-    # Finds the burn rate of a propellant given a .csv file with
+    # Finds the burn rate of a propellant given a .csv file with-------------------------------------------------------
     # time[s] and PRESSURE [MPa], a certain motor and a pressure range
     # test_BR_from_pressure(id_file,id_motor,p_min=1.2,p_max=2)
 
+    # Plots burn rate as a function of pressure for the desired propellants--------------------------------------------
+    plot_br_multiple(ar(['knsu','knsu_geprop_02']), [0, 10])
 
-    # Test functions---//--//---//--//---//--//---//--//---//--//---//--//---//--//---//--//---//--//
 
 
-    # Testing with different propellants---//--//---//--//---//--//---//--//---//--//---//--//---//--//---//--//---//--//
-    array_L = ar(['knsu','knsu_geprop_01','knsu_geprop_01']);id_prop = 0
+    # Test functions---//--//---//--//---//--//---//--//---//--//---//--//---//--//---//--//---//--//--//--//---//--//
+
+
+    # Testing with different propellants---------------------------------------------------------------------------------
+    array_L = ar(['knsu','knsu_geprop_02']);id_prop = 0
     plt_m_grains(N,id_prop,array_L,motor,eta_noz=0.85,AeAt=round((23.6/12.54)**2,1))
 
-    # Test with 35 different inner diameter values for the grains---//--//---//--//---//--//---//--//---//--//---//--//---//--//---//--//---//--//
+    # Test with 35 different inner diameter values for the grains-------------------------------------------------------
     # array_Di = np.linspace(5,35,100)
     # id_prop = 6
     # plt_m_grains(N,id_prop,array_Di,motor,eta_noz=0.85,AeAt=6.3)
 
 
-    # Testing with varying expansion ratios ---//--//---//--//---//--//---//--//---//--//---//--//---//--//---//--//---//--//
+    # Testing with varying expansion ratios -------------------------------------------------------------
     # array_AeAt = np.linspace(1, 6.5, 100)
     # plt_AeAt(N, array_AeAt, motor, eta_noz=0.85)
 
 
 
-    # Plots both Pressure and Thrust graphs
+    # Regular functions ---//--//---//--//---//--//---//--//---//--//---//--//---//--//---//--//---//--//
+
+    # Plots both Pressure and Thrust graphs-----------------------------------------------------------------------------
     # pl(t,F)
     # pl(t,Pc_MPa)
     # ic(max(F),max(Pc_MPa))
 
-    # Plots burn rate as a function of pressure for the desired propellants
-    plot_br_multiple(ar(['knsu','knsu_geprop_01','knsu_geprop_02']), [0, 10])
-    # plot_br_multiple(ar(['knsu','knsu_geprop_03ficticio','knsu_geprop_04ficticio']), [0, 10])
-    # plot_br_multiple(ar(['knsu', 'knsu_geprop_06ficticio']), [0, 10])
-
-    # New functions ---//--//---//--//---//--//---//--//---//--//---//--//---//--//---//--//---//--//
     create_eng=0
     if create_eng==1:
         t, Pc, k, tbout, r_avg, m_grain0 = calculate_pressure_parameters(int(N), motor)
@@ -105,6 +105,7 @@ def main():
                    'manufacturer'       : 'TauRocketTeam'}
 
         save_array_to_eng_file(data_01, info_01, path_thrustcurves)
+
 
 
     return 0
