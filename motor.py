@@ -152,7 +152,7 @@ def mot(id_motor):
         P_target = 1.091
         csi, esi, osi = [1, 1, 0]
     elif id_motor == 10:
-        prop = 'knsu_geprop_01'
+        prop = 'knsu_geprop_02'
         Dt = 12.54
         Rho_pct = (0.89)
         Ng = 2
