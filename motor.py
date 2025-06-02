@@ -1,5 +1,32 @@
 from startup import *
 
+from dataclasses import dataclass
+import numpy as np
+
+@dataclass
+class Motor:
+    """Class representing a rocket motor"""
+    prop: str          # e.g. 'knsu'
+    Dt: float          # Throat diameter (mm)
+    Rho_pct: float     # Density percentage
+    Ng: int            # Number of grains
+    L: float           # Grain length (mm)
+    De: float          # Grain outer diameter (mm)
+    Di: float          # Grain inner diameter (mm)
+    p_min: float = 0   # Min pressure (MPa)
+    p_max: float = 10  # Max pressure (MPa)
+    csi: int = 1       # Core surface inhibition
+    esi: int = 1       # End surface inhibition
+    osi: int = 0       # Outer surface inhibition
+
+    def to_array(self):
+        """Convert to numpy array matching original format"""
+        return np.array([
+            self.prop, self.Dt, self.Rho_pct, self.Ng, self.L,
+            self.De, self.Di, self.p_min, self.p_max,
+            self.csi, self.esi, self.osi
+        ], dtype=object)
+
 
 def mot(id_motor):
 
