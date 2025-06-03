@@ -7,9 +7,6 @@ from plots import *
 
 # TODO:
 #  1:
-#  Change the updating of the values in the for loops from directly altering the formula
-#  to using lambda functions, to keep it neat.
-#  2:
 #  Add SRM's calculation of optimal throat diameter for the pressure.
 #  3:
 #  Correct the error, discontinuity that occurs
@@ -17,8 +14,6 @@ from plots import *
 #  4:
 #  log scale graph not working. is it because the graph is in MPa? shouldn't be, right?
 #  5:
-#  fit the power law https://www.youtube.com/watch?v=wujirumjHxU
-#  6:
 #  Add a function that takes initial parameters such as a Diameter
 #  And returns ALL needed parameters that can be calculated quickly
 #  In order to declutter other functions (having calculations in them that don't serve the main purpose)
@@ -55,7 +50,7 @@ def main():
     # test_BR_from_pressure(id_file,id_motor,p_min=1.2,p_max=2)
 
     # Plots burn rate as a function of pressure for the desired propellants--------------------------------------------
-    plot_br_multiple(ar(['knsu','knsu_geprop_02']), [0, 10])
+    # plot_br_multiple(ar(['knsu','knsu_geprop_02']), [0, 10])
 
 
 
@@ -64,7 +59,7 @@ def main():
 
     # Testing with different propellants---------------------------------------------------------------------------------
     array_L = ar(['knsu','knsu_geprop_02']);id_prop = 0
-    plt_m_grains(N,id_prop,array_L,motor,eta_noz=0.85,AeAt=round((23.6/12.54)**2,1))
+    # plt_m_grains(N,id_prop,array_L,motor,eta_noz=0.85,AeAt=round((23.6/12.54)**2,2))
 
     # Test with 35 different inner diameter values for the grains-------------------------------------------------------
     # array_Di = np.linspace(5,35,100)
@@ -79,11 +74,18 @@ def main():
 
 
     # Regular functions ---//--//---//--//---//--//---//--//---//--//---//--//---//--//---//--//---//--//
-
-    # Plots both Pressure and Thrust graphs-----------------------------------------------------------------------------
-    # pl(t,F)
-    # pl(t,Pc_MPa)
-    # ic(max(F),max(Pc_MPa))
+    # Option 1: Using the Motor class
+    # motor = Motor(
+    #     prop='knsu',
+    #     Dt=12.54,
+    #     Rho_pct=0.89,
+    #     Ng=2,
+    #     L=(44.74 + 83.46) / 2,  # 64.1 mm
+    #     De=48.34,
+    #     Di=17.44,
+    #     p_min=1.2,
+    #     p_max=2.0
+    # )
 
     create_eng=0
     if create_eng==1:
@@ -92,6 +94,7 @@ def main():
         # AeAt = 6.278
         # AeAt = 2.39 #PVC_05
         AeAt = 1.505
+
         F, Pc_MPa, t, Cf = calculate_thrust(N,motor,0.9533,AeAt)
         data_01 = np.column_stack((t,F))
         nome_do_arquivo = 'GEPROP_001'
@@ -105,6 +108,10 @@ def main():
                    'manufacturer'       : 'TauRocketTeam'}
 
         save_array_to_eng_file(data_01, info_01, path_thrustcurves)
+        # Plots both Pressure and Thrust graphs-----------------------------------------------------------------------------
+        # pl(t,F)
+        # pl(t,Pc_MPa)
+        # ic(max(F),max(Pc_MPa))
 
 
 

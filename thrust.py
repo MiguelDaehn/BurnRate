@@ -4,6 +4,69 @@ from startup import *
 from burnrate import *
 from pressure import *
 
+import numpy as np
+
+
+def thrust_coefficient(P2: float,
+                       Pc: float,
+                       k: float,
+                       eta_noz: float,
+                       Ae_At: float,
+                       patm_pa: float = 101325.0) -> float:
+    """
+    Calculates the thrust coefficient (CF) for a rocket nozzle.
+
+    Args:
+        P2: Nozzle exit pressure (Pa)
+        Pc: Chamber pressure (Pa)
+        k: Specific heat ratio (γ)
+        eta_noz: Nozzle efficiency (0-1)
+        Ae_At: Nozzle expansion ratio (Ae/At)
+        patm_pa: Ambient pressure (Pa, default=101325)
+
+    Returns:
+        CF: Thrust coefficient (dimensionless)
+    """
+    # Input validation
+    if Pc <= 0 or P2 <= 0:
+        return 0.0
+
+    # Prevent division by zero and invalid exponents
+    if np.isclose(k, 1.0, atol=1e-5):
+        k = 1.0001  # Avoid singularity
+
+    # Critical pressure ratio check
+    P_ratio = P2 / Pc
+    P_crit = (2 / (k + 1)) ** (k / (k - 1))
+
+    if P_ratio >= P_crit:  # Flow not choked
+        return 0.0
+
+    # Isentropic term calculation
+    try:
+        isentropic_term = 2 * k ** 2 / (k - 1) * (2 / (k + 1)) ** ((k + 1) / (k - 1))
+        pressure_term = 1 - P_ratio ** ((k - 1) / k)
+
+        if pressure_term <= 1e-10:  # Handle numerical underflow
+            pressure_term = 0.0
+
+        cf_isentropic = eta_noz * np.sqrt(isentropic_term * pressure_term)
+
+        # Pressure thrust term
+        pressure_thrust = (P2 - patm_pa) / Pc * Ae_At
+
+        # Total CF
+        CF = cf_isentropic + pressure_thrust
+
+        # Physical bounds check
+        CF = np.clip(CF, 0, 2.5)  # Practical upper limit for CF
+
+        return float(CF)
+
+    except (ValueError, ZeroDivisionError):
+        return 0.0
+
+
 def calculate_thrust(N,motor_data,eta_noz,Ae_At):
 
     # Calculating Time [s] and Chamber Pressure [MPa]
@@ -70,7 +133,7 @@ def calculate_thrust(N,motor_data,eta_noz,Ae_At):
     # Lambda functions for the loops
     P2 = lambda Pc: Pc/(1+(k-1)/2*Me**2)**(k/(k-1))
     FT = lambda Cf,Pc: At*Cf*Pc
-    CF = lambda P2,Pc:eta_noz*np.sqrt(2*k**2/(k-1)*(2/(k+1))**((k+1)/(k-1))*(1-(P2/Pc)**((k-1)/k)))+(P2-patm_pa)/Pc*(Ae/At)
+    # CF = lambda P2,Pc:eta_noz*np.sqrt(2*k**2/(k-1)*(2/(k+1))**((k+1)/(k-1))*(1-(P2/Pc)**((k-1)/k)))+(P2-patm_pa)/Pc*(Ae/At)
     IT = lambda F1,F2,T1,T2: (F1+F2)/2*(T2-T1)
 
 
@@ -79,9 +142,15 @@ def calculate_thrust(N,motor_data,eta_noz,Ae_At):
 
     for i in range(Np):
         P2_Pa[i]    = ifxl(P2(Pc_Pa[i])<patm_pa,patm_pa,P2(Pc_Pa[i]))
-        cf          = CF(P2_Pa[i],Pc_Pa[i])
-        # Cf[i]       = np.nan_to_num(cf)
-        Cf[i]       = np.nan_to_num(cf,posinf =0, neginf =0)
+        cf = thrust_coefficient(
+            P2=P2_Pa[i],
+            Pc=Pc_Pa[i],
+            k=k,
+            eta_noz=eta_noz,    # From function args (0.85 default)
+            Ae_At=Ae_At,        # (Ae/At ratio)
+            patm_pa=patm_pa     # From startup.py (101325 Pa)
+        )
+        Cf[i] = cf
 
         F[i]        = FT(Cf[i],Pc_Pa[i])
         It_arr[i]   = IT(F[i-1],F[i],t[i-1],t[i])

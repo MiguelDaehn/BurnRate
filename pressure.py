@@ -1,7 +1,7 @@
 from startup import *
 from burnrate import *
 
-def calculate_pressure_parameters(N, motor_data):
+def calculate_pressure_parameters(N, motor_data,c_star=0):
     prop = motor_data[0].astype(str)
 
     Dt = motor_data[1].astype(float)
@@ -38,7 +38,8 @@ def calculate_pressure_parameters(N, motor_data):
     ratto = rat * to
     # ic(ratto)
     k = properties_table[1][dp]
-    c_star = np.sqrt(ratto/k*(((k+1)/2)**((k+1)/(k-1))))
+
+    c_star = ifxl(c_star==0,np.sqrt(ratto/k*(((k+1)/2)**((k+1)/(k-1)))),c_star)
     # ic(c_star)
     pbd = 0
 
@@ -107,44 +108,56 @@ def calculate_pressure_parameters(N, motor_data):
     Pc_Mpa2[0]  = patm
 
     # ic(incs)
-    for i in range(1, N):
-        Pc_Mpa2[i] = Pc_Mpa[i - 1]
-        DI[i] = DI[i - 1] + csi * 2 * incs
-        DE[i] = DE[i - 1] - osi * 2 * incs
-        L[i] = L[i - 1] - Ng * esi * 2 * incs
-        TW[i] = (DE[i] - DI[i]) / 2
-        A_duct[i] = (pi / 4) * De ** 2 - (pi / 4) * (DE[i] ** 2 - DI[i] ** 2)
-        A_duct_t[i] = A_duct[i] / At
-        V_g[i] = ((pi / 4) * (DE[i] ** 2 - DI[i] ** 2) * L[i]) / (1000 ** 3)
-        V_free[i] -= V_g[i]
-        m_grain[i] = rho_g * (V_g[i])
+    # Define lambda functions for each calculation
+    Pc_Mpa2_func = lambda i: Pc_Mpa[i - 1]
+    DI_func = lambda i: DI[i - 1] + csi * 2 * incs
+    DE_func = lambda i: DE[i - 1] - osi * 2 * incs
+    L_func = lambda i: L[i - 1] - Ng * esi * 2 * incs
+    TW_func = lambda i: (DE[i] - DI[i]) / 2
+    A_duct_func = lambda i: (pi / 4) * De ** 2 - (pi / 4) * (DE[i] ** 2 - DI[i] ** 2)
+    A_duct_t_func = lambda i: A_duct[i] / At
+    V_g_func = lambda i: ((pi / 4) * (DE[i] ** 2 - DI[i] ** 2) * L[i]) / (1000 ** 3)
+    V_free_func = lambda i: V_free[i] - V_g[i]
+    m_grain_func = lambda i: rho_g * (V_g[i])
+    t_func = lambda i: incs / rdot[i] + t[i - 1]
+    AI_func = lambda i: (Pc_Mpa2[i] - patm) * 1e6 * A_star * par_AI
+    A_burn_func = lambda i: ((pi / 4) * (DE[i] ** 2 - DI[i] ** 2) * 2 * Ng * esi) + (pi * DE[i] * L[i] * Ng * osi) + (
+                pi * DI[i] * L[i] * Ng * csi)
+    mdot_nozzle_cond = lambda i: AI[i] if (mdot_ger[i] < AI[i] and Pc_Mpa[i - 1] > pbd) else (
+        0 if (mdot_ger[i] < AI[i]) else AI[i])
+    mdot_ger_func = lambda i: (m_grain[i - 1] - m_grain[i]) / (t[i] - t[i - 1])
+    m_stodot_func = lambda i: mdot_ger[i] - mdot_nozzle[i]
+    m_sto_func = lambda i: m_stodot[i] * (t[i] - t[i - 1]) + m_sto[i - 1]
+    rho_prod_func = lambda i: m_sto[i] / V_free[i]
+    Pc_pa_func = lambda i: rho_prod[i] * ratto
+    Pc_Mpa_func = lambda i: Pc_pa[i] / 1e6
 
-        # Above this line, all are functional --/---/--/---/--/---/--/---/--/---/--/---/
-        # ic(Pc_pa,Pc_Mpa,Pc_Mpa2)
+    for i in range(1, N):
+        Pc_Mpa2[i] = Pc_Mpa2_func(i)
+        DI[i] = DI_func(i)
+        DE[i] = DE_func(i)
+        L[i] = L_func(i)
+        TW[i] = TW_func(i)
+        A_duct[i] = A_duct_func(i)
+        A_duct_t[i] = A_duct_t_func(i)
+        V_g[i] = V_g_func(i)
+        V_free[i] = V_free_func(i)
+        m_grain[i] = m_grain_func(i)
+
         rdot[i] = rdp(prop, Pc_Mpa2[i])
 
+        t[i] = t_func(i)
+        AI[i] = AI_func(i)
+        A_burn[i] = A_burn_func(i)
 
-        t[i] = incs / rdot[i] + t[i - 1]
+        mdot_nozzle[i] = mdot_nozzle_cond(i)
+        mdot_ger[i] = mdot_ger_func(i)
+        m_stodot[i] = m_stodot_func(i)
+        m_sto[i] = m_sto_func(i)
 
-        AI[i] = (Pc_Mpa2[i] - patm) * 1e6 * A_star * par_AI
-        A_burn[i] = ((pi / 4) * (DE[i] ** 2 - DI[i] ** 2) * 2 * Ng * esi) + (pi * DE[i] * L[i] * Ng * osi) + (pi * DI[i] * L[i] * Ng * csi)
-
-        #TODO: Change this implementation to the ifxl() function for readability. Or don't.
-        if (mdot_ger[i] < AI[i]):
-            if Pc_Mpa[i - 1] > pbd:
-                mdot_nozzle[i] = AI[i]
-            else:
-                mdot_nozzle[i] = 0
-        else:
-            mdot_nozzle[i] = AI[i]
-
-        mdot_ger[i] = (m_grain[i - 1] - m_grain[i]) / (t[i] - t[i - 1])
-        m_stodot[i] = mdot_ger[i] - mdot_nozzle[i]
-        m_sto[i] = m_stodot[i] * (t[i] - t[i - 1]) + m_sto[i - 1]
-
-        rho_prod[i] = m_sto[i] / V_free[i]
-        Pc_pa[i] += rho_prod[i] * ratto
-        Pc_Mpa[i] = Pc_pa[i] / 1e6
+        rho_prod[i] = rho_prod_func(i)
+        Pc_pa[i] += Pc_pa_func(i)
+        Pc_Mpa[i] = Pc_Mpa_func(i)
 
         # ic(i,Pc_Mpa2[i],rdot[i])
         # ic(i,Pc_pa[i])
