@@ -1,7 +1,7 @@
 from startup import *
 from motor_library import load_motor, MotorConfig, process_motor_specs
 from thrust import calculate_thrust, thrust_pressure_plot
-from plots import save_array_to_eng_file
+from plots import *
 
 
 # TODO:
@@ -78,6 +78,15 @@ def main():
 
     # 8. Visualize Results
     # This helper generates the Pressure and Thrust curves
+
+    # To test how different throat diameters (Dt) affect performance:
+    throat_sizes = [10.0, 11.5, 12.5, 13.0]
+    plt_m_parameter(10000, "Dt", throat_sizes, motor)
+
+    # Or to test different grain lengths:
+    lengths = [50, 60, 70]
+    plt_m_parameter(10000, "L", lengths, motor)
+
     thrust_pressure_plot(N, motor, Ae_At)
 
     # Example for TODO #4: Log Scale Plotting
