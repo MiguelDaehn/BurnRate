@@ -26,8 +26,6 @@ from plots import save_array_to_eng_file
 #  YOU NEED TO FIX THE CF (THRUST COEFFICIENT) SOONER RATHER THAN LATER THIS IS A SERIOUS ISSUE
 #  10:
 #  Add functionality to check if the user is separating KNSB grains with o-rings
-#  11:
-#  in the motor.py file, around line 100, add "P_target" to the motor_data array
 #  12: make it so that 'motor' and 'grain' are significantly separate, with different classes
 
 

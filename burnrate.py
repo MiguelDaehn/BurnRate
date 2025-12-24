@@ -1,5 +1,4 @@
 from startup import *
-from motor import *
 
 def Ab_f(N, De, Di0, L, s):
     A_b = pi * N * (0.5 * (De ** 2 - (Di0 + 2 * s) ** 2) + (L - 2 * s) * (Di0 + 2 * s))

@@ -19,7 +19,6 @@ class MotorConfig:
     esi: int = 1       # End surface inhibition
     osi: int = 0       # Outer surface inhibition
 
-# Extracted from motor.py
 MOTOR_LIBRARY = {
     "motor_1": {"prop": 'knsb', "Dt": 9.659, "Rho_pct": 0.95, "Ng": 4, "L": 50.0, "De": 45.0, "Di": 25.0, "P_target": 4.5, "csi": 1, "esi": 1, "osi": 0},
     "motor_2": {"prop": 'knpsb', "Dt": np.sqrt(81.1 / (np.pi / 4)) * 10, "Rho_pct": 1.912/1.923, "Ng": 2, "L": 65.0, "De": 43.1, "Di": 13.88, "p_min": 3.5, "p_max": 6, "P_target": 4.5, "csi": 1, "esi": 1, "osi": 0},
