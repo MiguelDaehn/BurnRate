@@ -97,7 +97,7 @@ def save_array_to_eng_file(data, motor_info,path):
 
     # Robust path joining
     path_0 = os.path.join(path, filename)
-    full_path = 'eng_files/' + path_0
+    full_path = 'results/eng_files/' + path_0
     # Save
     np.savetxt(full_path, data, fmt='%.6f', delimiter='\t', header=header, comments='')
     print(f"File saved to: {full_path}")

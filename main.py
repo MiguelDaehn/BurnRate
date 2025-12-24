@@ -2,9 +2,13 @@ from startup import *
 from motor_library import load_motor, MotorConfig, process_motor_specs
 from thrust import calculate_thrust, thrust_pressure_plot
 from plots import plt_m_parameter, plot_log_pressure, save_array_to_eng_file
+from reporting import *
 import numpy as np
-# Add this import at the top
-from reporting import create_pdf_report
+
+
+# ==========================================
+#        SRM SIMULATOR - TESTING AREA
+# ==========================================
 
 
 def demo_generate_report(motor_name="motor_12"):
@@ -24,10 +28,32 @@ def demo_generate_report(motor_name="motor_12"):
 
 
 
+def demo_sensitivity_report(motor_name="motor_12"):
+    """
+    TEST 7: Sensitivity Report Generation
+    Compares multiple configurations and saves a summary PDF.
+    """
+    print(f"\n=== DEMO 7: Sensitivity Analysis Report ({motor_name}) ===")
+    motor = load_motor(motor_name)
 
-# ==========================================
-#        SRM SIMULATOR - TESTING AREA
-# ==========================================
+    # Define what we want to test
+    # Example: Varying Grain Lengths to see effect on pressure and impulse
+    param = "L"
+    original_L = motor.L
+    values = [original_L * 0.9, original_L, original_L * 1.1, original_L * 1.2]
+
+    print(f"Varying '{param}' across: {values}")
+
+    # Output path
+    filename = os.path.join('./results/reports/', f"{motor.name}_Sensitivity_{param}.pdf")
+
+    # Generate
+    create_sensitivity_report(motor, param, values, filename)
+
+
+# Add to main():
+# demo_sensitivity_report("motor_12")
+
 
 def demo_single_run(motor_name="motor_12"):
     """
@@ -151,10 +177,13 @@ def main():
 
     # [3] EXPORT
     # Generate files for flight simulation.
-    demo_export_openrocket("motor_12")
+    # demo_export_openrocket("motor_12")
 
     # CREATE PDF REPORT
-    # demo_generate_report("motor_12")
+    demo_generate_report("motor_12")
+
+    # CREATE PDF REPORT FOR MULTIPLE CONFIGURATIONS
+    demo_sensitivity_report("motor_12")
 
 
 if __name__ == '__main__':
