@@ -23,7 +23,7 @@ class MotorConfig:
 
 MOTOR_LIBRARY = {
     "motor_1": {"prop": 'knsb', "Dt": 9.659, "Rho_pct": 0.95, "Ng": 4, "L": 50.0, "De": 45.0, "Di": 25.0, "P_target": 4.5, "core_surface_inhibited": 1, "ends_surface_inhibited": 1, "outer_surface_inhibited": 0},
-    "motor_2": {"prop": 'knpsb', "Dt": np.sqrt(81.1 / (np.pi / 4)) * 10, "Rho_pct": 1.912/1.923, "Ng": 2, "L": 65.0, "De": 43.1, "Di": 13.88, "p_min": 3.5, "p_max": 6, "P_target": 4.5, "core_surface_inhibited": 1, "ends_surface_inhibited": 1, "outer_surface_inhibited": 0},
+    "motor_2": {"prop": 'knpsb', "Dt": np.sqrt(81.1 / (np.pi / 4)) , "Rho_pct": 1.912/1.923, "Ng": 2, "L": 65.0, "De": 43.1, "Di": 13.88, "p_min": 3.5, "p_max": 6, "P_target": 4.5, "core_surface_inhibited": 1, "ends_surface_inhibited": 1, "outer_surface_inhibited": 0},
     "motor_4": {"prop": 'knsu', "Dt": 5.0, "Rho_pct": 0.9, "Ng": 1, "L": 81.14, "De": 24.12, "Di": 5.0, "P_target": 2.0, "core_surface_inhibited": 1, "ends_surface_inhibited": 0, "outer_surface_inhibited": 0},
     "motor_5": {"prop": 'knsu', "Dt": 11.0, "Rho_pct": 0.85, "Ng": 1, "L": 80.0, "De": 33.0, "Di": 25.5, "P_target": 1.091, "core_surface_inhibited": 1, "ends_surface_inhibited": 1, "outer_surface_inhibited": 0},
     "motor_7": {"prop": 'knsu', "Dt": 6.0, "Rho_pct": 0.9533, "Ng": 1, "L": 75.0, "De": 25.4, "Di": 15.0, "P_target": 1.091, "core_surface_inhibited": 1, "ends_surface_inhibited": 1, "outer_surface_inhibited": 0},

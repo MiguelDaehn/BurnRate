@@ -53,7 +53,30 @@ def save_array_to_eng_file(data, motor_info,path):
     np.savetxt(path+filename, data, fmt='%.6f', delimiter='\t', header=header, comments='')
 
 
+def plot_log_pressure(t, Pc_MPa, motor_name):
+    """
+    Plots pressure vs time on a log-log scale.
+    Resolves TODO #4.
+    """
+    import matplotlib.pyplot as plt
 
+    # Filter out values <= 0 for log compatibility
+    # t[0] is often 0.0, so we start from the second element
+    mask = (t > 0) & (Pc_MPa > 0)
+    t_log = t[mask]
+    P_log = Pc_MPa[mask]
+
+    plt.figure(figsize=(8, 6))
+    plt.loglog(t_log, P_log, label='Chamber Pressure', color='blue', linewidth=2)
+
+    # Adding 'minor' grid lines makes log scales readable
+    plt.grid(True, which="both", ls="-", alpha=0.5)
+
+    plt.xlabel('Time [s] (Log Scale)')
+    plt.ylabel('Pressure [MPa] (Log Scale)')
+    plt.title(f'Log-Log Performance: {motor_name}')
+    plt.legend()
+    plt.show()
 
 
 def main():

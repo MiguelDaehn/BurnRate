@@ -18,11 +18,11 @@ def main():
     # 1. Configuration
     # Discretization steps
     N = 10000
-
+    motor_name = 'motor_2'
     # 2. Load the Motor from the library
     try:
         # Example: motor_12 is a KNSU motor
-        motor = load_motor("motor_12")
+        motor = load_motor(motor_name)
         # Optional: Set O-ring thickness if separating grains (TODO #10)
         motor.o_ring_thickness = 2.0
         print(f"--- Loaded Motor: {motor.name} ---")
