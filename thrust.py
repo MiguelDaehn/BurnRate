@@ -79,16 +79,26 @@ def calculate_thrust(N, motor: MotorConfig, eta_noz, Ae_At):
     # 4. Main Thrust Loop
     for i in range(Np):
         if Pc_Pa[i] < patm_pa:
-            # Below atmospheric pressure, the motor isn't producing usable thrust
             continue
 
-        # STABILITY FIX: Summerfield Criterion / Flow Separation
-        # If exit pressure drops too low, the flow separates from the nozzle walls.
-        # We clip P2 to 0.35 * Patm to prevent the negative pressure 'surge'.
+        # Summerfield Criterion Logic (TODO #13)
         raw_P2 = calc_P2(Pc_Pa[i])
-        P2_Pa[i] = max(raw_P2, 0.35 * patm_pa)
 
-        # Calculate CF
+        # Separation check: if P2 < 0.35 * Patm, flow separates
+        separation_threshold = 0.35 * patm_pa
+
+        if raw_P2 < separation_threshold:
+            # When separated, the effective P2 is higher because
+            # atmospheric air fills the 'void' at the nozzle exit
+            P2_effective = separation_threshold
+            # Note: In a more complex model, the effective Ae_At
+            # would also decrease, but P2 clipping is a standard first-order fix.
+        else:
+            P2_effective = raw_P2
+
+        P2_Pa[i] = P2_effective
+
+        # Calculate CF with the physically corrected P2
         cf = thrust_coefficient(
             P2=P2_Pa[i],
             Pc=Pc_Pa[i],

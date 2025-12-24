@@ -141,30 +141,26 @@ def find_M2(Ae_At, k):
 
 
 def find_kn_max(prop_type, P_target):
-    '''PROP_TYPE: "KNSU", "KNSB", "KNDX",...'''
-    '''P_TARGET: UNITS IN MPa'''
-
-    prop = dict_prop[prop_type.lower()]
+    '''PROP_TYPE: "KNSU", "KNSB", etc. P_TARGET: MPa'''
+    prop_key = prop_type.lower().split('_')[0]  # Handle sub-variants
+    prop = dict_prop.get(prop_key, 2)
 
     if prop >= 1:
         prop += 2
 
+    # Logic for KNDX variants as per your original code
     if prop == 0:
         if (P_target > 2.758) and (P_target <= 5.861):
             prop = 1
         if P_target > 5.861:
             prop = 2
-    ic(prop)
+
     kn_f = lambda P, a, b, c, d, e, f, g: a + b * P ** 1 + c * P ** 2 + d * P ** 3 + e * P ** 4 + f * P ** 5 + g * P ** 6
 
     a, b, c, d, e, f, g = KN_table[prop, :]
-    kn_max = kn_f(P_target, a, b, c, d, e, f, g)
-
-    return kn_max
-
+    return kn_f(P_target, a, b, c, d, e, f, g)
 
 def main():
-    # ic(find_M2(6.278, 1.137))
 
     ic(find_kn_max('kn' + 'dx', 2.0))
 
