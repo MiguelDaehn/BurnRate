@@ -1,240 +1,120 @@
 from startup import *
-from burnrate import *
+from burnrate import rdp
+from motor_library import MotorConfig
 
-def calculate_pressure_parameters(N, motor_data,c_star=0):
-    prop = motor_data[0].astype(str)
 
-    Dt = motor_data[1].astype(float)
-    Rho_pct = motor_data[2].astype(float)
-    Ng = motor_data[3].astype(float)
-    L0 = motor_data[4].astype(float)
-    De = motor_data[5].astype(float)
-    Di = motor_data[6].astype(float)
+def calculate_pressure_parameters(N, motor: MotorConfig, c_star=0):
+    """
+    Calculates chamber pressure and timing parameters using a MotorConfig object.
+    Replaces the legacy positional array indexing with named attributes.
+    """
+    # 1. Extract properties from the MotorConfig object
+    prop = motor.prop
+    Dt = motor.Dt
+    Rho_pct = motor.Rho_pct
+    Ng = motor.Ng
+    L0 = motor.L
+    De = motor.De
+    Di = motor.Di
+    csi, esi, osi = motor.csi, motor.esi, motor.osi
 
-    p_min = motor_data[7].astype(float)
-    p_max = motor_data[8].astype(float)
-
-    csi = motor_data[9].astype(int)
-    esi = motor_data[10].astype(int)
-    osi = motor_data[11].astype(int)
-
-    # TODO:
-    #  Add functionality to check if the user is separating KNSB grains with o-rings
-
-    # L_oring = motor_data[x]
-    # Lc = Ng*(L0+L_oring)
+    # 2. Setup Chamber Geometry
+    # Lc is the case length (with a 20% margin for spacers/o-rings)
     Lc = (Ng * L0) * 1.2
-    Vc = (Lc * (pi / 4) * De ** 2) / 1000 ** 3
+    Vc = (Lc * (pi / 4) * De ** 2) / 1000 ** 3  # Convert mm3 to m3
 
-    dp = dict_prop.get(prop, 2)  # Returns 2 if key doesn't exist
-    if dp == 2:
-        print(f"Warning: If you are not using KNSU, '{prop}' not found. Defaulting to dp = 2.")
-
+    # 3. Thermochemical Properties
+    dp = dict_prop.get(prop.lower(), 2)
     rat = Ru / properties_table[2][dp]
-    # Manipulate 'nuc' to reach the calculated value of c*
-    # if calculating from experimental pressure values
-    nuc = 0.95
+    nuc = motor.nuc
     to = nuc * properties_table[3][dp]
     ratto = rat * to
-    # ic(ratto)
     k = properties_table[1][dp]
+    rho_ideal = properties_table[0][dp]
+    rho_g = 1000 * rho_ideal * Rho_pct  # Density in kg/m3
 
-    c_star = ifxl(c_star==0,np.sqrt(ratto/k*(((k+1)/2)**((k+1)/(k-1)))),c_star)
-    # ic(c_star)
-    pbd = 0
+    # Calculate Characteristic Velocity (C*) if not provided
+    if c_star == 0:
+        c_star = np.sqrt(ratto / k * (((k + 1) / 2) ** ((k + 1) / (k - 1))))
 
-    tw0 = (De - Di) / 2
-    dp = dict_prop.get(prop, 2)  # Returns 2 if key doesn't exist
-    if dp == 2:
-        print(f"Warning: If you are not using KNSU, '{prop}' not found. Defaulting to dp = 2.")
-    rhoideal = properties_table[0][dp]
+    # 4. Nozzle Parameters
+    At = (pi / 4) * (Dt ** 2)  # mm2
+    A_star = At / 1e6  # m2
+    par_AI = np.sqrt(k / ratto) * (2 / (k + 1)) ** ((k + 1) / (2 * (k - 1)))
 
-    rho_g = 1000 * rhoideal * Rho_pct
-    At = pi * (Dt / 2) ** 2
-
-    # Assuming At is in mm² units, A_star is At in m²
-    A_star = At / (1e6)
-    Vg0 = ((pi / 4) * (De ** 2 - Di ** 2) * L0 * Ng) / 1000 ** 3
-    mp0 = Ng * Vg0 * rho_g
-    par_AI = np.sqrt(k / ratto) * (2 / (k + 1)) ** ((k + 1) / 2 / (k - 1))
-    # ic(par_AI)
-
+    # 5. Simulation Initialization
+    tw0 = (De - Di) / 2  # Total web thickness to burn
     s = np.linspace(0, tw0, N)
     incs = s[1] - s[0]
 
-    t           = np.zeros_like(s)
-    DI          = np.zeros_like(s)
-    DE          = np.zeros_like(s)
-    L           = np.zeros_like(s)
-    TW          = np.zeros_like(s)
-    A_duct      = np.zeros_like(s)
-    A_duct_t    = np.zeros_like(s)
-    AI          = np.zeros_like(s)
-    rho_prod    = np.zeros_like(s)
-    m_sto       = np.zeros_like(s)
-    m_stodot    = np.zeros_like(s)
-    V_g         = np.zeros_like(s)
-    Pc_Mpa2     = np.zeros_like(s)
-    mdot_nozzle = np.zeros_like(s)
-    mdot_ger    = np.zeros_like(s)
-    m_grain     = np.zeros_like(s)
-    rdot        = np.zeros_like(s)
-    A_burn      = np.zeros_like(s)
+    # Pre-allocate arrays for speed
+    t = np.zeros(N)
+    rdot = np.zeros(N)
+    Pc_Mpa = np.ones(N) * patm
+    m_grain = np.zeros(N)
+    m_sto = np.zeros(N)
 
-    Pc_pa       = np.ones_like(s) * patm * 1e6
-    V_free      = np.ones_like(s) * Vc
-    Pc_Mpa      = np.ones_like(s) * patm
+    # Initial state
+    Vg0 = ((pi / 4) * (De ** 2 - Di ** 2) * L0 * Ng) / 1000 ** 3
+    m_grain[0] = rho_g * Vg0
+    rdot[0] = rdp(prop, patm)
 
-    DI[0]   = Di
-    DE[0]   = De
-    L[0]    = L0 * Ng
-    TW[0]   = tw0
-
-    A_burn[0] = ((pi/4)*(DE[0]**2-DI[0]**2)*2*Ng*esi) + (pi*DE[0]*L[0]*Ng*osi) + (pi*DI[0]*L[0]*Ng*csi)
-    # Note:
-    # Here I'm assuming that the grain outer diameter is the case inner diameter
-    # Of course there is thermal protection too, but the area we're gonna use (A_duct) is the
-    # area through which the gasses can flow so I'll take the initial grain outer diameter as the maximum
-    # flowing internal d1iameter.
-
-    A_duct[0]   = (pi / 4) * (Di ** 2)
-    A_duct_t[0] = A_duct[0] / At
-    # Ignore: Pc_pa[0] += rho_prod[i]*ratto
-
-    V_g[0]      = Vg0
-    V_free[0]   = Vc - Vg0
-    m_grain[0]  = rho_g * Vg0
-    rdot[0]     = rdp(prop, patm)
-    Pc_Mpa2[0]  = patm
-
-    # ic(incs)
-    # Define lambda functions for each calculation
-    Pc_Mpa2_func = lambda i: Pc_Mpa[i - 1]
-    DI_func = lambda i: DI[i - 1] + csi * 2 * incs
-    DE_func = lambda i: DE[i - 1] - osi * 2 * incs
-    L_func = lambda i: L[i - 1] - Ng * esi * 2 * incs
-    TW_func = lambda i: (DE[i] - DI[i]) / 2
-    A_duct_func = lambda i: (pi / 4) * De ** 2 - (pi / 4) * (DE[i] ** 2 - DI[i] ** 2)
-    A_duct_t_func = lambda i: A_duct[i] / At
-    V_g_func = lambda i: ((pi / 4) * (DE[i] ** 2 - DI[i] ** 2) * L[i]) / (1000 ** 3)
-    V_free_func = lambda i: V_free[i] - V_g[i]
-    m_grain_func = lambda i: rho_g * (V_g[i])
-    t_func = lambda i: incs / rdot[i] + t[i - 1]
-    AI_func = lambda i: (Pc_Mpa2[i] - patm) * 1e6 * A_star * par_AI
-    A_burn_func = lambda i: ((pi / 4) * (DE[i] ** 2 - DI[i] ** 2) * 2 * Ng * esi) + (pi * DE[i] * L[i] * Ng * osi) + (
-                pi * DI[i] * L[i] * Ng * csi)
-    mdot_nozzle_cond = lambda i: AI[i] if (mdot_ger[i] < AI[i] and Pc_Mpa[i - 1] > pbd) else (
-        0 if (mdot_ger[i] < AI[i]) else AI[i])
-    mdot_ger_func = lambda i: (m_grain[i - 1] - m_grain[i]) / (t[i] - t[i - 1])
-    m_stodot_func = lambda i: mdot_ger[i] - mdot_nozzle[i]
-    m_sto_func = lambda i: m_stodot[i] * (t[i] - t[i - 1]) + m_sto[i - 1]
-    rho_prod_func = lambda i: m_sto[i] / V_free[i]
-    Pc_pa_func = lambda i: rho_prod[i] * ratto
-    Pc_Mpa_func = lambda i: Pc_pa[i] / 1e6
-
+    # 6. Main Simulation Loop
     for i in range(1, N):
-        Pc_Mpa2[i] = Pc_Mpa2_func(i)
-        DI[i] = DI_func(i)
-        DE[i] = DE_func(i)
-        L[i] = L_func(i)
-        TW[i] = TW_func(i)
-        A_duct[i] = A_duct_func(i)
-        A_duct_t[i] = A_duct_t_func(i)
-        V_g[i] = V_g_func(i)
-        V_free[i] = V_free_func(i)
-        m_grain[i] = m_grain_func(i)
+        # Update Geometry based on inhibition
+        # Current web burned = s[i]
+        curr_di = Di + csi * 2 * s[i]
+        curr_de = De - osi * 2 * s[i]
+        curr_l = (L0 * Ng) - esi * 2 * s[i]
 
-        rdot[i] = rdp(prop, Pc_Mpa2[i])
+        # Surface Area and Volume
+        Ab_mm2 = ((pi / 4) * (curr_de ** 2 - curr_di ** 2) * 2 * Ng * esi) + \
+                 (pi * curr_de * curr_l * osi) + \
+                 (pi * curr_di * curr_l * csi)
 
-        t[i] = t_func(i)
-        AI[i] = AI_func(i)
-        A_burn[i] = A_burn_func(i)
+        Vg_m3 = ((pi / 4) * (curr_de ** 2 - curr_di ** 2) * curr_l) / (1000 ** 3)
+        V_free = Vc - Vg_m3
+        m_grain[i] = rho_g * Vg_m3
 
-        mdot_nozzle[i] = mdot_nozzle_cond(i)
-        mdot_ger[i] = mdot_ger_func(i)
-        m_stodot[i] = m_stodot_func(i)
-        m_sto[i] = m_sto_func(i)
+        # Physics: Pressure and Burn Rate
+        # Mass generated by propellant
+        rdot[i] = rdp(prop, Pc_Mpa[i - 1])
+        t[i] = t[i - 1] + (incs / rdot[i])
 
-        rho_prod[i] = rho_prod_func(i)
-        Pc_pa[i] += Pc_pa_func(i)
-        Pc_Mpa[i] = Pc_Mpa_func(i)
+        mdot_gen = (m_grain[i - 1] - m_grain[i]) / (t[i] - t[i - 1])
 
-        # ic(i,Pc_Mpa2[i],rdot[i])
-        # ic(i,Pc_pa[i])
-        # ic(i,mdot_nozzle[i],mdot_ger[i],AI[i])
-        # ic(i,Pc_Mpa[i])
-        # ic(i,t[i])
-        # ic(i,rdot[i])
-        # ic(i,m_sto[i])
+        # Mass flow through nozzle (Choked flow assumption)
+        mdot_noz = (Pc_Mpa[i - 1] * 1e6) * A_star * par_AI
 
-    A_burn_max = max(A_burn)
-    # ic(A_burn_max)
-    t_inc = 0.00001
+        # Mass storage and resulting pressure
+        m_stodot = mdot_gen - mdot_noz
+        m_sto[i] = m_sto[i - 1] + m_stodot * (t[i] - t[i - 1])
+
+        rho_prod = m_sto[i] / V_free
+        Pc_Mpa[i] = (rho_prod * ratto) / 1e6
+
+    # 7. Tail-off Calculation (Depressurization)
+    # Simple exponential decay after grain is consumed
+    t_inc = 0.001
     tbout = t[-1]
     pbout = Pc_Mpa[-1]
-    # ic(tbout,pbout,ratto,A_star,Vc,c_star)
-    # breakpoint()
 
-    err_MPa = 1.0
-    n = 10000
-
-
-    # ic(Pc_Mpa[-1])
-
-    start = time.time()
-    while Pc_Mpa[-1]>=patm:
-
-        t = np.append(t, t[-1]+t_inc)
-        Pc_pos = pbout*np.exp(-ratto*A_star*(t[-1]-tbout)/(Vc*c_star))
-        Pc_Mpa = np.append(Pc_Mpa,Pc_pos)
-
-        # finish = time.time()
-        # if finish - start>1:
-        #     break
+    while Pc_Mpa[-1] > patm:
+        t_next = t[-1] + t_inc
+        p_next = pbout * np.exp(-ratto * A_star * (t_next - tbout) / (Vc * c_star))
+        t = np.append(t, t_next)
+        Pc_Mpa = np.append(Pc_Mpa, p_next)
+        if len(t) > N * 2: break  # Safety break
 
     r_avg = np.average(rdot)
 
+    return t, Pc_Mpa, k, tbout, r_avg, m_grain[0]
 
-
-    arr_m = ar([s, TW, DI, DE, L, A_duct, A_duct_t, rdot,
-                V_g, V_free, m_grain, mdot_ger,
-                # 13
-                mdot_nozzle, m_stodot, m_sto, rho_prod, Pc_pa, AI])
-
-
-    # TODO: fix the following:
-    #  rho_prod, Pc_pa,AI,rdot,m_sto,m_stodot,t,mdot_ger,mdot_nozzle,rho_prod
-    #  I think they're fixed, but please doublecheck
-
-
-    # Debugging
-
-    na = 19
-
-    for aa in arr_m[na:]:
-        # ic(aa[0])
-        pass
-    # ic(rdot)
-    # ic(arr_m[na:])
-    # ic(rdot)
-    # ic(Pc_Mpa2)
-    # Pc_Mpa2[-1] = patm
-
-    # Plotting pressure x time
-
-    
-    return t,Pc_Mpa,k,tbout,r_avg,m_grain[0],
-
-
-
-
-
-
-
-
-def main():
-
-    return 0
 
 if __name__ == '__main__':
-    main()
+    # Test with the new library structure
+    from motor_library import load_motor
+
+    test_motor = load_motor("motor_12")
+    t, pc, k, tb, ravg, m0 = calculate_pressure_parameters(1000, test_motor)
+    print(f"Simulation complete for {test_motor.name}. Peak Pressure: {max(pc):.2f} MPa")
