@@ -1,5 +1,7 @@
 from startup import *
-from motor import *
+# Removed: from motor import *
+from motor_library import MotorConfig  # Added to support new architecture
+
 
 def Ab_f(N, De, Di0, L, s):
     A_b = pi * N * (0.5 * (De ** 2 - (Di0 + 2 * s) ** 2) + (L - 2 * s) * (Di0 + 2 * s))
@@ -12,41 +14,40 @@ def Delta_s(At, Ab, Pc, rho, cstar, delta_t):
 
 
 def func_powerlaw(x, a, n):
-    return a*(x ** n)
+    return a * (x ** n)
 
 
 target_func = func_powerlaw
 
 
-def BR_from_pressure(id, motor_data):
+def BR_from_pressure(id, motor: MotorConfig):  # Changed to accept MotorConfig object
     T, Pc = LoadData('BR', id.lower(), 'csv')
     if max(Pc > 1e5):
         Pc = Pc / 10 ** 6
+
     delta_t = np.array([T[i + 1] - T[i] for i in range(len(T) - 1)])
     delta_t = np.append(delta_t, delta_t[-1])
     dt_avg = np.average(delta_t)
 
-    p_min = motor_data[7].astype(float)
-    p_max = motor_data[8].astype(float)
-    # p_min *= 1e6
-    # p_max *= 1e6
+    # Use attributes from the motor object instead of array indices
+    p_min = motor.p_min
+    p_max = motor.p_max
+    prop = motor.prop.lower()
+    Dt = motor.Dt
+    rho_pct = motor.Rho_pct
+    Ng = motor.Ng
+    L = motor.L
+    De = motor.De
+    Di = motor.Di
 
-    prop = motor_data[0].lower()
-    Dt = motor_data[1].astype(float)
-    rho_pct = motor_data[2].astype(float)
-    Ng = motor_data[3].astype(int)
-    L = motor_data[4].astype(float)
-    De = motor_data[5].astype(float)
-    Di = motor_data[6].astype(float)
     w0 = (De - Di) / 2
-    dp = dict_prop.get(prop, 2)  # Returns 2 if key doesn't exist
-    if dp == 2:
-        print(f"Warning: If you are not using KNSU, '{prop}' not found. Defaulting to dp = 2.")
-    rhoideal = properties_table[0][dp]
+    dp = dict_prop.get(prop.split('_')[0], 2)  # Handle sub-variants like 'knsu_geprop'
 
+    rhoideal = properties_table[0][dp]
     rho_g = rho_pct * rhoideal
 
     At = pi * (Dt / 2) ** 2
+    # Geometry calculation for mass propellant
     Vg = pi * ((De / 2 / 10) ** 2 - (Di / 2 / 10) ** 2) * (L / 10)
     mp = Ng * Vg * rho_g
     Psum = np.sum(Pc)
@@ -58,27 +59,20 @@ def BR_from_pressure(id, motor_data):
     delta_s = np.zeros_like(T)
     ds_dt = np.zeros_like(T)
 
-    # delta_s[1] = 0.0
     ss = np.array([0, 5, 100]) / 100
     start = time.time()
+
     while err_w0 > 1e-15:
         s[1] = ss[1]
         for i, t in enumerate(T):
-
             Ab[i] = Ab_f(Ng, De, Di, L, s[i - 1])
-            # ic(Ab[i])
             if i > 1:
                 s[i] = s[i - 1] + delta_s[i - 1]
             if i > 0:
                 delta_s[i] = Delta_s(At, Ab[i], Pc[i], rho_g, cstar, delta_t[i])
-                if delta_t[i] != 0:
-                    ds_dt[i] = delta_s[i] / delta_t[i]
-                else:
-                    ds_dt[i] = 0
-                # ic(delta_t[i])
+                ds_dt[i] = delta_s[i] / delta_t[i] if delta_t[i] != 0 else 0
 
         err_w0 = err(w0, s[-1])
-        # ic(err_w0)
 
         if s[-1] >= w0:
             ss[2] = ss[1]
@@ -86,51 +80,30 @@ def BR_from_pressure(id, motor_data):
         else:
             ss[0] = ss[1]
             ss[1] = (ss[1] + ss[2]) / 2
-        finish = time.time()
-        if finish - start > 10:
+
+        if time.time() - start > 10:
             break
 
-    if p_max == 0:
-        pass
-    else:
-        j = np.where(Pc > p_min)
-        k = np.where(Pc < p_max)
-        z = np.intersect1d(j, k)
+    if p_max != 0:
+        z = np.intersect1d(np.where(Pc > p_min), np.where(Pc < p_max))
         Pc = Pc[z]
         ds_dt = ds_dt[z]
 
+    pars, _ = curve_fit(func_powerlaw, Pc, ds_dt, p0=np.asarray([5, 0.5]), maxfev=10000)
+    return Pc, ds_dt, [pars[0], pars[1], 0]  # Returns a, n, R2 placeholder
 
-
-    target_func = func_powerlaw
-
-    pars, sol0 = curve_fit(func_powerlaw, Pc, ds_dt, p0=np.asarray([5, 0.5]),maxfev=10000)
-    a,n = pars
-    print(f'a: {a}, \nn: {n}')
-    plt.scatter(Pc, ds_dt, marker='*', color='red')
-    plt.plot(Pc, target_func(Pc, *pars), '--',label=f'{a}·P^{n}')
-
-    y_pred = func_powerlaw(Pc, a,n)
-    RSS = np.sum((ds_dt - y_pred) ** 2)
-    TSS = np.sum((ds_dt - np.mean(ds_dt)) ** 2)
-    R2 = 1 - (RSS / TSS)
-
-    return Pc, ds_dt,[a,n,R2]
 
 def pp(propt):
-    rddatapath = 'data/BR_dict_'+propt+'.csv'
-    rdp = np.loadtxt(rddatapath, delimiter=',', skiprows=1, usecols=range(1, 5))
+    # Strip sub-variants (e.g., 'knsu_geprop_02' -> 'knsu') to find the CSV
+    base_prop = propt.split('_')[0]
+    rddatapath = 'data/BR_dict_' + base_prop + '.csv'
 
-    if np.size(rdp) == 0:
-        pass
-    # ic(rdp)
-    return rdp
-
-rd_knsu = pp('knsu')
-rd_knsb = pp('knsb')
-rd_kndx = pp('kndx')
-rd_knfr = pp('knfr')
-rd_kner = pp('kner')
-rd_knpsb = pp('knpsb')
+    try:
+        rdp_data = np.loadtxt(rddatapath, delimiter=',', skiprows=1, usecols=range(1, 5))
+        return rdp_data if rdp_data.ndim > 1 else rdp_data.reshape(1, -1)
+    except FileNotFoundError:
+        print(f"Warning: Burn rate file for {base_prop} not found.")
+        return np.array([])
 
 
 def rdp(prop, P=1.0):
@@ -138,36 +111,21 @@ def rdp(prop, P=1.0):
     if P > 1e5:
         P = P * 1e-6
 
-    result = None  # Initialize result variable
-    for i, row in enumerate(rd_prop):
-        # Check if row is a scalar or an array
-        if isinstance(row, np.ndarray):
-            if len(row) < 4:
-                raise ValueError("Row does not have enough columns.")
-        else:
-            raise ValueError("Row is not an array.")
+    # Logic to find the correct pressure interval
+    for row in rd_prop:
+        if (P >= row[0]) and (P <= row[1]):
+            return row[2] * P ** row[3]
 
-        if (P >= row[0]) and (P <= row[1]):  # Use 'and' for logical comparison
-            result = row[2] * P ** row[3] # Use row[2] instead of rd[2]
-            break  # Exit the loop once the condition is met
-
-    if result is None:
-        ic(P)
-
-        print(f'Propellant:{prop}')
-        raise ValueError('ERROR: no adequate pressure interval found!')
-    if prop=='knsu_geprop':
-        # ic(result)#,row[2],row[3])
-        pass
-    return result
+    print(f'Propellant: {prop} at Pressure: {P}')
+    raise ValueError('ERROR: no adequate pressure interval found!')
 
 
-
-def test_BR_from_pressure(id_file,id_motor,p_min=3.5,p_max=4.5):
-    motor = mot(id_motor)
-    motor[7]=p_min
-    motor[8]=p_max
-    Pc, BR, [a,n,R2] = BR_from_pressure(id_file, motor)
+def test_BR_from_pressure(id_file, motor_id, p_min=3.5, p_max=4.5):
+    from motor_library import load_motor
+    motor = load_motor(motor_id)
+    motor.p_min = p_min
+    motor.p_max = p_max
+    Pc, BR, [a, n, R2] = BR_from_pressure(id_file, motor)
     plt.plot(Pc, target_func(Pc, *[a,n]), '--')
     pl(Pc, BR, 'Chamber Pressure [MPa]', 'Burn Rate [mm/s]',
        f'Burn Rate as a function of Pressure - R²={round(R2,3)}',

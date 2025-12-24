@@ -1,6 +1,8 @@
 import numpy as np
 from numpy import exp, sin, cos, tan, arcsin, arccos, arctan, pi, where
 from scipy.optimize import curve_fit
+from scipy.optimize import brentq
+
 
 import matplotlib.pyplot as plt
 import pandas as pd
@@ -116,48 +118,49 @@ def ifxl(cond, v_pos, v_neg):
 
 
 
-def find_M2(AeAt, k):
-    AeAt = float(AeAt)
-    ME = lambda Me: AeAt - 1 / Me * ((1 + (k - 1) / 2 * Me ** 2) / (1 + (k - 1) / 2)) ** ((k + 1) / (2 * (k - 1)))
+def find_M2(Ae_At, k):
+    """
+    Finds the supersonic Mach number (Me) for a given area ratio.
+    Replaces the np.linspace search for better stability and speed.
+    """
+    # Define the area-ratio function (Isentropic flow equation)
+    def area_ratio_func(M):
+        # term = ((k+1)/2)**(-(k+1)/(2*(k-1)))
+        # return (1/M) * ((1 + (k-1)/2 * M**2)**((k+1)/(2*(k-1)))) * term - Ae_At
+        # Simplified version for stability:
+        exponent = (k + 1) / (2 * (k - 1))
+        return (1/M) * ((1 + (k-1)/2 * M**2) / ((k+1)/2))**exponent - Ae_At
 
-    M2 = np.linspace(0.001, 10, 1000)
-    Mea = ar([abs(ME(i)) for i in M2])
-    ID = np.argmin(Mea)
-    val = M2[ID]
-
-    M2 = np.linspace(val - 1, val + 1, 10000)
-    Mea = ar([abs(ME(i)) for i in M2])
-    ID = np.argmin(Mea)
-    val = M2[ID]
-
-    return val
+    try:
+        # Supersonic roots are always > 1.0.
+        # We search between 1.0001 and 10.0 (covering almost all SRM cases).
+        return brentq(area_ratio_func, 1.0001, 10.0)
+    except ValueError:
+        # If no supersonic solution exists (Ae_At < 1), return 1.0 (choked at exit)
+        return 1.0
 
 
 def find_kn_max(prop_type, P_target):
-    '''PROP_TYPE: "KNSU", "KNSB", "KNDX",...'''
-    '''P_TARGET: UNITS IN MPa'''
-
-    prop = dict_prop[prop_type.lower()]
+    '''PROP_TYPE: "KNSU", "KNSB", etc. P_TARGET: MPa'''
+    prop_key = prop_type.lower().split('_')[0]  # Handle sub-variants
+    prop = dict_prop.get(prop_key, 2)
 
     if prop >= 1:
         prop += 2
 
+    # Logic for KNDX variants as per your original code
     if prop == 0:
         if (P_target > 2.758) and (P_target <= 5.861):
             prop = 1
         if P_target > 5.861:
             prop = 2
-    ic(prop)
+
     kn_f = lambda P, a, b, c, d, e, f, g: a + b * P ** 1 + c * P ** 2 + d * P ** 3 + e * P ** 4 + f * P ** 5 + g * P ** 6
 
     a, b, c, d, e, f, g = KN_table[prop, :]
-    kn_max = kn_f(P_target, a, b, c, d, e, f, g)
-
-    return kn_max
-
+    return kn_f(P_target, a, b, c, d, e, f, g)
 
 def main():
-    # ic(find_M2(6.278, 1.137))
 
     ic(find_kn_max('kn' + 'dx', 2.0))
 

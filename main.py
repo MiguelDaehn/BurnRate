@@ -1,123 +1,190 @@
 from startup import *
-from burnrate import *
-from thrust import *
-from motor import *
-from plots import *
+from motor_library import load_motor, MotorConfig, process_motor_specs
+from thrust import calculate_thrust, thrust_pressure_plot
+from plots import plt_m_parameter, plot_log_pressure, save_array_to_eng_file
+from reporting import *
+import numpy as np
 
 
-# TODO:
-#  1:
-#  Add SRM's calculation of optimal throat diameter for the pressure.
-#  3:
-#  Correct the error, discontinuity that occurs
-#  when pressure drops to 0. just set ds/dt = 0.
-#  4:
-#  log scale graph not working. is it because the graph is in MPa? shouldn't be, right?
-#  5:
-#  Add a function that takes initial parameters such as a Diameter
-#  And returns ALL needed parameters that can be calculated quickly
-#  In order to declutter other functions (having calculations in them that don't serve the main purpose)
-#  7:
-#  Kn depends on pressure. look at tables to the right of the first page of SRM
-#  Kn of a certain pressure (our desired MEOP) is calculated. Kn = Ab/At -> At = Kn_max * Ab_max
-#  8:
-#  There's an error when you try to run plt_AeAt(N, array_AeAt, motor, eta_noz=0.85):
-#  It seems that for some reason the thrust is getting multiplied, like 3000 N when it was supposed to be ~500
-#  Ok apparently it surges when the expansion ratio goes above 9 or 10
-#  9:
-#  YOU NEED TO FIX THE CF (THRUST COEFFICIENT) SOONER RATHER THAN LATER THIS IS A SERIOUS ISSUE
-#  10:
-#  Add functionality to check if the user is separating KNSB grains with o-rings
-#  11:
-#  in the motor.py file, around line 100, add "P_target" to the motor_data array
-#  12: make it so that 'motor' and 'grain' are significantly separate, with different classes
+# ==========================================
+#        SRM SIMULATOR - TESTING AREA
+# ==========================================
+
+
+def demo_generate_report(motor_name="motor_12"):
+    """
+    TEST 6: PDF Report Generation
+    Simulates the motor and creates a professional PDF summary.
+    """
+    print(f"\n=== DEMO 6: Generating PDF Report ({motor_name}) ===")
+    motor = load_motor(motor_name)
+
+    # Run Simulation
+    F, Pc, t, Cf, It = calculate_thrust(10000, motor, 0.95, 6.278)
+
+    # Generate PDF
+    output_filename = f"{motor.name}_Report.pdf"
+    create_pdf_report(motor, t, Pc, F, It, filename=output_filename)
+
+
+
+def demo_sensitivity_report(motor_name="motor_12"):
+    """
+    TEST 7: Sensitivity Report Generation
+    Compares multiple configurations and saves a summary PDF.
+    """
+    print(f"\n=== DEMO 7: Sensitivity Analysis Report ({motor_name}) ===")
+    motor = load_motor(motor_name)
+
+    # Define what we want to test
+    # Example: Varying Grain Lengths to see effect on pressure and impulse
+    param = "L"
+    original_L = motor.L
+    values = [original_L * 0.9, original_L, original_L * 1.1, original_L * 1.2]
+
+    print(f"Varying '{param}' across: {values}")
+
+    # Output path
+    filename = os.path.join('./results/reports/', f"{motor.name}_Sensitivity_{param}.pdf")
+
+    # Generate
+    create_sensitivity_report(motor, param, values, filename)
+
+
+# Add to main():
+# demo_sensitivity_report("motor_12")
+
+
+def demo_single_run(motor_name="motor_12"):
+    """
+    TEST 1: The Basics
+    - Loads a motor configuration.
+    - Checks if the nozzle is sized correctly for the target pressure.
+    - Simulates the burn.
+    - Prints performance metrics and plots the standard curves.
+    """
+    print(f"\n=== DEMO 1: Standard Simulation ({motor_name}) ===")
+
+    # 1. Load Motor
+    try:
+        motor = load_motor(motor_name)
+    except ValueError as e:
+        print(f"Error: {e}")
+        return
+
+    # 2. Sizing Check (The Pre-processor)
+    # This tells you if your hardware (Dt) matches your physics goals (P_target)
+    specs = process_motor_specs(motor)
+    print(f"Propellant:      {motor.prop}")
+    print(f"Target Pressure: {motor.P_target} MPa")
+    print(f"Ideal Dt:        {specs['dt_ideal']:.2f} mm")
+    print(f"Hardware Dt:     {motor.Dt:.2f} mm")
+
+    if abs(motor.Dt - specs['dt_ideal']) > 0.5:
+        print(">> WARNING: Significant Nozzle Dt mismatch! Expect off-target pressure.")
+
+    # 3. Run Simulation
+    # N=10000 gives high precision. eta_noz=0.95 is typical for well-made nozzles.
+    F, Pc_MPa, t, Cf, It = calculate_thrust(N=10000, motor=motor, eta_noz=0.95, Ae_At=6.278)
+
+    # 4. Results Output
+    print("-" * 30)
+    print(f"Peak Pressure:   {max(Pc_MPa):.3f} MPa")
+    print(f"Max Thrust:      {max(F):.2f} N")
+    print(f"Total Impulse:   {It:.2f} Ns")
+    print(f"Burn Time:       {t[-1]:.3f} s")
+    print("-" * 30)
+
+    # 5. Visualize
+    thrust_pressure_plot(10000, motor, Ae_At=6.278)
+
+
+def demo_parameter_sweeps(motor_name="motor_12"):
+    """
+    TEST 2: Sensitivity Analysis
+    - Demonstrates how changing one parameter (like Throat Diameter or Length)
+    - affects the Thrust and Pressure curves.
+    - Uses the dynamic 'plt_m_parameter' tool.
+    """
+    print(f"\n=== DEMO 2: Parameter Sweeps ({motor_name}) ===")
+    motor = load_motor(motor_name)
+
+    # Sweep A: Throat Diameter (Dt)
+    # We test 90%, 100%, and 110% of the current diameter
+    current_dt = motor.Dt
+    dt_values = [current_dt * 0.9, current_dt, current_dt * 1.1]
+
+    print(f"Sweeping Dt values: {[round(x, 2) for x in dt_values]} mm...")
+    plt_m_parameter(10000, "Dt", dt_values, motor)
+
+    # IMPORTANT: Reset motor attribute because objects are mutable!
+    motor.Dt = current_dt
+
+    # Sweep B: Grain Length (L)
+    # See how adding length increases pressure (Kn) and burn time
+    l_values = [motor.L * 0.9, motor.L, motor.L * 1.1]
+
+    print(f"Sweeping Grain Length values: {[round(x, 2) for x in l_values]} mm...")
+    plt_m_parameter(10000, "L", l_values, motor)
+
+
+
+def demo_export_openrocket(motor_name="motor_12"):
+    """
+    TEST 4: Data Export
+    - Runs a simulation and saves the Thrust Curve to a .eng file.
+    - This file can be imported directly into OpenRocket.
+    """
+    print(f"\n=== DEMO 4: OpenRocket Export ({motor_name}) ===")
+    motor = load_motor(motor_name)
+    F, Pc, t, Cf, It = calculate_thrust(10000, motor, 0.95, 6.278)
+
+    # Define the header info required by OpenRocket
+    info_eng = {
+        'filename': f"{motor.name}_sim",
+        'name': f"{motor.name}_Simulated",
+        'outer_diameter': str(motor.De),
+        'length': str(motor.L * motor.Ng),
+        'delay_charge_time': 'P',  # 'P' stands for Plugged (no ejection charge)
+        'propellant_mass': f"{(It / 1200):.3f}",  # Rough est. based on Impulse
+        'total_mass': f"{(It / 1000):.3f}",  # Rough est.
+        'manufacturer': 'TauRocketTeam'
+    }
+
+    print(f"Saving {motor.name}_sim.eng to current directory...")
+
+    # Combine Time and Thrust into the standard 2-column format
+    data = np.column_stack((t, F))
+    save_array_to_eng_file(data, info_eng, "./")
+    print("Export Complete.")
+
 
 def main():
+    """
+    Main Entry Point.
+    Uncomment the function you want to run.
+    """
+    print("--- SRM Simulator Ready ---")
 
-    # Discretization
+    # [1] STANDARD RUN
+    # The default workhorse. Check stats and standard plots.
+    # demo_single_run("motor_12")
 
-    # N = 834 #Discretization used by SRM, useful for checking / comparing values
-    N = 100000
-
-    # Motor identification and definition--//--//---//--//---//--//---//--//--//--//---//--//---//--//---//--//
-
-    id_file = "knsu_geprop_02";id_motor = 10
-    # id_file = 'nakka'; id_motor = 2
-    motor = mot(id_motor)
-
-    # Finds the burn rate of a propellant given a .csv file with-------------------------------------------------------
-    # time[s] and PRESSURE [MPa], a certain motor and a pressure range
-    # test_BR_from_pressure(id_file,id_motor,p_min=1.2,p_max=2)
-
-    # Plots burn rate as a function of pressure for the desired propellants--------------------------------------------
-    # plot_br_multiple(ar(['knsu','knsu_geprop_02']), [0, 10])
+    # [2] SENSITIVITY ANALYSIS
+    # Compare different geometries side-by-side.
+    # demo_parameter_sweeps("motor_12")
 
 
+    # [3] EXPORT
+    # Generate files for flight simulation.
+    # demo_export_openrocket("motor_12")
 
-    # Test functions---//--//---//--//---//--//---//--//---//--//---//--//---//--//---//--//---//--//--//--//---//--//
+    # CREATE PDF REPORT
+    demo_generate_report("motor_12")
 
-
-    # Testing with different propellants---------------------------------------------------------------------------------
-    array_L = ar(['knsu','knsu_geprop_02']);id_prop = 0
-    # plt_m_grains(N,id_prop,array_L,motor,eta_noz=0.85,AeAt=round((23.6/12.54)**2,2))
-
-    # Test with 35 different inner diameter values for the grains-------------------------------------------------------
-    # array_Di = np.linspace(5,35,100)
-    # id_prop = 6
-    # plt_m_grains(N,id_prop,array_Di,motor,eta_noz=0.85,AeAt=6.3)
-
-
-    # Testing with varying expansion ratios -------------------------------------------------------------
-    # array_AeAt = np.linspace(1, 6.5, 100)
-    # plt_AeAt(N, array_AeAt, motor, eta_noz=0.85)
-
-
-
-    # Regular functions ---//--//---//--//---//--//---//--//---//--//---//--//---//--//---//--//---//--//
-    # Option 1: Using the Motor class
-    # motor = Motor(
-    #     prop='knsu',
-    #     Dt=12.54,
-    #     Rho_pct=0.89,
-    #     Ng=2,
-    #     L=(44.74 + 83.46) / 2,  # 64.1 mm
-    #     De=48.34,
-    #     Di=17.44,
-    #     p_min=1.2,
-    #     p_max=2.0
-    # )
-
-    create_eng=0
-    if create_eng==1:
-        t, Pc, k, tbout, r_avg, m_grain0 = calculate_pressure_parameters(int(N), motor)
-
-        # AeAt = 6.278
-        # AeAt = 2.39 #PVC_05
-        AeAt = 1.505
-
-        F, Pc_MPa, t, Cf = calculate_thrust(N,motor,0.9533,AeAt)
-        data_01 = np.column_stack((t,F))
-        nome_do_arquivo = 'GEPROP_001'
-        info_01 = {'filename'           : nome_do_arquivo,
-                   'name'               : nome_do_arquivo,
-                   'outer_diameter'     : str(motor[5]),
-                   'length'             : str(motor[4]),
-                   'delay_charge_time'  : 'P',
-                   'propellant_mass'    : str(m_grain0),
-                   'total_mass'         : str(m_grain0),
-                   'manufacturer'       : 'TauRocketTeam'}
-
-        save_array_to_eng_file(data_01, info_01, path_thrustcurves)
-        # Plots both Pressure and Thrust graphs-----------------------------------------------------------------------------
-        # pl(t,F)
-        # pl(t,Pc_MPa)
-        # ic(max(F),max(Pc_MPa))
-
-
-
-    return 0
+    # CREATE PDF REPORT FOR MULTIPLE CONFIGURATIONS
+    demo_sensitivity_report("motor_12")
 
 
 if __name__ == '__main__':
     main()
-    print('\n\nPlease read the improvement suggestions at the beginning of the main.py script.\n\n')
