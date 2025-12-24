@@ -1,3 +1,4 @@
+import os
 from thrust import *
 
 
@@ -90,9 +91,16 @@ def save_array_to_eng_file(data, motor_info,path):
     # Create the header string
     header = f"{name} {outer_diameter} {length} {delay_charge_time} {propellant_mass} {total_mass} {manufacturer}"
 
-    # Save the array to the file with the header
-    np.savetxt(path+filename, data, fmt='%.6f', delimiter='\t', header=header, comments='')
+    # Create the directory if it doesn't exist
+    if not os.path.exists(path):
+        os.makedirs(path)
 
+    # Robust path joining
+    path_0 = os.path.join(path, filename)
+    full_path = 'eng_files/' + path_0
+    # Save
+    np.savetxt(full_path, data, fmt='%.6f', delimiter='\t', header=header, comments='')
+    print(f"File saved to: {full_path}")
 
 def plot_log_pressure(t, Pc_MPa, motor_name):
     """
