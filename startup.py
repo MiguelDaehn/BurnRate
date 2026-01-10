@@ -32,7 +32,6 @@ properties_table = np.loadtxt(properties_path, delimiter=',', skiprows=1, usecol
 KN_table_path = 'data/KN_table.csv'
 KN_table = np.loadtxt(KN_table_path, delimiter=',', skiprows=1, usecols=range(0, 7))
 
-
 def ar(lista):
     return np.array(lista)
 

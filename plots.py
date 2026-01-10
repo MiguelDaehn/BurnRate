@@ -66,23 +66,14 @@ def plt_AeAt(N,arr_aeat,motor,eta_noz=0.85):
     plt.show()
 
 
-def save_array_to_eng_file(data, motor_info,path):
-    filename, name, outer_diameter, length, delay_charge_time, propellant_mass, total_mass,manufacturer = motor_info.values()
+def save_array_to_eng_file(data, motor_info, path="results/eng_files/"):
     """
-    Saves a 2D numpy array with 2 columns to a .eng file with a custom header.
+    Saves a 2D numpy array to a .eng file.
 
-    Parameters:
-    - data: A numpy array with 2 columns and many rows.
-    - filename: The name of the file (without extension).
-    - name: The name of the data (e.g., 'My_Engine_01').
-    - outer_diameter: Motor outer diameter.
-    - length: Motor length.
-    - delay_charge_time: Delay charge time.
-    - propellant_mass: Propellant mass.
-    - total_mass: Total mass (propellant+dry weight -> if you want to manually add the parts' weight).
-                  and location, propellant_mass == total_mass
-    - manufacturer: Manufacturer name.
+    Args:
+        path: The target directory. Defaults to 'results/eng_files/'.
     """
+    filename, name, outer_diameter, length, delay_charge_time, propellant_mass, total_mass, manufacturer = motor_info.values()
 
     # Ensure the filename ends with .eng
     if not filename.endswith('.eng'):
@@ -91,13 +82,15 @@ def save_array_to_eng_file(data, motor_info,path):
     # Create the header string
     header = f"{name} {outer_diameter} {length} {delay_charge_time} {propellant_mass} {total_mass} {manufacturer}"
 
-    # Create the directory if it doesn't exist
-    if not os.path.exists(path):
-        os.makedirs(path)
+    # 1. Clean Path Construction
+    # We trust the 'path' argument. We do NOT prepend a hardcoded string.
+    full_path = os.path.join(path, filename)
 
-    # Robust path joining
-    path_0 = os.path.join(path, filename)
-    full_path = 'results/eng_files/' + path_0
+    # 2. Extract the directory from the full path and create it if needed
+    directory = os.path.dirname(full_path)
+    if directory and not os.path.exists(directory):
+        os.makedirs(directory)
+
     # Save
     np.savetxt(full_path, data, fmt='%.6f', delimiter='\t', header=header, comments='')
     print(f"File saved to: {full_path}")

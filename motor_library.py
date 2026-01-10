@@ -30,6 +30,10 @@ MOTOR_LIBRARY = {
     "motor_10": {"prop": 'knsu_geprop_02', "Dt": 12.54, "Rho_pct": 0.89, "Ng": 2, "L": 64.1, "De": 48.34, "Di": 17.44, "p_min": 1.2, "p_max": 2.0, "P_target": 1.091, "core_surface_inhibited": 1, "ends_surface_inhibited": 1, "outer_surface_inhibited": 0},
     "motor_11": {"prop": 'knsu_geprop_03', "Dt": 12.54, "Rho_pct": 0.885, "Ng": 2, "L": 59.71, "De": 48.22, "Di": 17.88, "p_min": 0.0, "p_max": 1.6, "P_target": 1.091, "core_surface_inhibited": 1, "ends_surface_inhibited": 1, "outer_surface_inhibited": 0},
     "motor_12": {"prop": 'knsu', "Dt": 12.54, "Rho_pct": 0.9, "Ng": 1, "L": 119.44, "De": 48.22, "Di": 17.88, "p_min": 0.0, "p_max": 1.6, "P_target": 1.091, "core_surface_inhibited": 1, "ends_surface_inhibited": 1, "outer_surface_inhibited": 0},
+    "motor_tauzinha": {"prop": 'knsu', "Dt": 12, "Rho_pct": 0.95, "Ng": 2, "L": 70, "De": 48, "Di": 20,
+                 "p_min": 0.0, "p_max": 1.6, "P_target": 1.091, "core_surface_inhibited": 1,
+                 "ends_surface_inhibited": 1, "outer_surface_inhibited": 0},
+
 }
 
 def load_motor(motor_id: str) -> MotorConfig:

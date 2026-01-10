@@ -6,7 +6,6 @@ from motor_library import MotorConfig, process_motor_specs
 def calculate_pressure_parameters(N, motor: MotorConfig, c_star=0):
     """
     Calculates chamber pressure using O-ring spacing and pre-processed specs.
-    Resolves TODO #5 and TODO #10.
     """
     # 1. Get Pre-processed values (TODO #5)
     specs = process_motor_specs(motor)
