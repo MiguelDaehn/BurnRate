@@ -14,7 +14,10 @@ def main():
     mot_2 = "motor_quark3_04"
     MOT = mot_2
 
-    run_motor_analysis(MOT)
+    run_motor_analysis(MOT, auto_size=False)
+
+
+
     # [1] STANDARD RUN
     # The default workhorse. Check stats and standard plots.
     # demo_single_run(mot_2)
