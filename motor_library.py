@@ -21,8 +21,8 @@ class MotorConfig:
     ends_surface_inhibited: int = 1
     outer_surface_inhibited: int = 0
     o_ring_thickness: float = 0.0
-    empty_mass: float = 0.0  # Default 0.0 as requested
-    manufacturer: str = "TauRocketTeam"  # Default manufacturer
+    empty_mass: float = 0.0
+    manufacturer: str = "TauRocketTeam"
 
 
 MOTOR_LIBRARY = {
@@ -45,9 +45,9 @@ MOTOR_LIBRARY = {
     "motor_tauzinha": {"prop": 'knsu', "Dt": 12, "Rho_pct": 0.95, "Ng": 2, "L": 70, "De": 48, "Di": 20, "p_min": 0.0,
                        "p_max": 1.6, "P_target": 1.091},
     "Hadron": {"prop": 'knsb', "Dt": 10.3, "Rho_pct": 0.95, "Ng": 3, "L": 60.0, "De": 56.0, "Di": 25.0,
-                        "P_target": 4.0},
-    "Quark3": {"prop": 'knsb', "Dt": 8.0, "Rho_pct": 0.95, "Ng": 2, "L": 60.0, "De": 56.0, "Di": 25.0,
-                        "P_target": 4.0, "o_ring_thickness": 3.3}
+               "P_target": 4.0},
+    "Quark3": {"prop": 'knsb', "Dt": 8.39, "Rho_pct": 0.95, "Ng": 2, "L": 60.0, "De": 56.0, "Di": 25.0, "P_target": 4.0,
+               "o_ring_thickness": 3.3}
 }
 
 
@@ -88,60 +88,37 @@ def process_motor_specs(motor: MotorConfig):
 
 
 def get_motor_signature(motor: MotorConfig):
-    """
-    Generates a unique string representing the motor's physical configuration.
-    Used to detect if the motor geometry has changed.
-    """
     d = asdict(motor)
-    # Exclude fields that don't affect physics/naming
-    exclude_keys = ['name', 'manufacturer', 'empty_mass']
+    exclude_keys = ['name', 'manufacturer', 'empty_mass', 'filename']
     signature_dict = {k: v for k, v in d.items() if k not in exclude_keys}
     return f"; {signature_dict}"
 
 
 def resolve_filename(base_name, signature, paths):
-    """
-    Checks if a file exists.
-    - If YES and signature MATCHES: Overwrite it (keep same name).
-    - If YES and signature DIFFERS: Increment name (Name_02, Name_03).
-    - If NO: Use Name.
-    Returns (final_name, final_filename)
-    """
     from pathlib import Path
-
-    # We use the first path (local results) as the reference
     check_dir = Path(paths[0])
-
-    # Try the base name first
     candidate_name = base_name
     candidate_file = f"{candidate_name}_sim.eng"
-
     target = check_dir / candidate_file
 
     if not target.exists():
         return candidate_name, candidate_file
 
-    # File exists, check signature
     try:
         with open(target, 'r') as f:
             first_line = f.readline().strip()
-            # If the file doesn't have a comment line (old version), we assume mismatch
             if first_line.startswith(';') and first_line == signature.strip():
                 return candidate_name, candidate_file
     except:
         pass
 
-        # Signature mismatch or old file: Start versioning
     counter = 2
     while True:
         candidate_name = f"{base_name}_{counter:02d}"
         candidate_file = f"{candidate_name}_sim.eng"
         target = check_dir / candidate_file
-
         if not target.exists():
             return candidate_name, candidate_file
-
-        # If version exists, check if THAT one matches our current data
         try:
             with open(target, 'r') as f:
                 first_line = f.readline().strip()
@@ -149,11 +126,10 @@ def resolve_filename(base_name, signature, paths):
                     return candidate_name, candidate_file
         except:
             pass
-
         counter += 1
 
 
-def run_full_simulation(motor_name, N=10000, eta_noz=0.95, Ae_At=6.278, export_eng=True):
+def run_full_simulation(motor_name, N=10000, eta_noz=0.95, Ae_At=6.278, export_eng=True, auto_size_throat=False):
     from thrust import calculate_thrust
     from reporting import create_pdf_report
     from plots import save_array_to_eng_file
@@ -162,34 +138,31 @@ def run_full_simulation(motor_name, N=10000, eta_noz=0.95, Ae_At=6.278, export_e
     from pathlib import Path
 
     motor = load_motor(motor_name)
+
+    # --- OPTIMIZATION STEP ---
+    if auto_size_throat:
+        specs = process_motor_specs(motor)
+        old_dt = motor.Dt
+        motor.Dt = specs['dt_ideal']
+        print(
+            f"🔧 AUTO-SIZING: Throat adjusted from {old_dt:.3f}mm to {motor.Dt:.3f}mm to match P_target={motor.P_target}MPa")
+
+    # Physics
     F, Pc_MPa, t, Cf, It = calculate_thrust(N, motor, eta_noz, Ae_At)
 
     if export_eng:
-        # 1. Physics Calc (Fixed length logic: one o-ring PER grain)
         total_len = (motor.L * motor.Ng) + (motor.Ng * motor.o_ring_thickness)
-
         specs = process_motor_specs(motor)
         rho_g = specs['rho_g']
-
-        # Volume in m^3
         vol_grain = (pi / 4) * (motor.De ** 2 - motor.Di ** 2) * motor.L * motor.Ng * 1e-9
         prop_mass = vol_grain * rho_g
         total_mass = prop_mass + motor.empty_mass
 
-        # 2. Paths
-        # Create a "results/eng_files" folder if it doesn't exist
         project_results = Path("results/eng_files")
-
-        # Save to Local AND OpenRocket
         export_paths = [project_results, path_thrustcurves]
 
-        # 3. Smart Naming & Signature
         signature = get_motor_signature(motor)
-
-        # Resolve smart name
         final_name, final_filename = resolve_filename(motor.name, signature, export_paths)
-
-        # Internal name in OpenRocket
         or_internal_name = f"{final_name}_Simulated"
 
         info_eng = {
@@ -204,9 +177,8 @@ def run_full_simulation(motor_name, N=10000, eta_noz=0.95, Ae_At=6.278, export_e
         }
 
         save_array_to_eng_file(np.column_stack((t, F)), info_eng, export_paths, header_comment=signature)
-        print(f"saved as {final_filename}")
+        print(f"💾 Saved as {final_filename} (10k points)")
 
-    # 4. Report
     report_path = os.path.join("results", "reports", f"{motor.name}_Report.pdf")
     create_pdf_report(motor, t, Pc_MPa, F, It, filename=report_path)
 

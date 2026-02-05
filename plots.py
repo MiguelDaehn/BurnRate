@@ -1,78 +1,75 @@
 import os
-from pathlib import Path
+import matplotlib.pyplot as plt
 import numpy as np
+from pathlib import Path
+from scipy.interpolate import interp1d
 from thrust import *
 
 
-def plt_m_parameter(N, param_name, values_to_test, motor: MotorConfig, eta_noz=0.95, Ae_At=6.278):
-    """
-    Plots and compares multiple configurations of a motor by varying a specific parameter.
-
-    Args:
-        N (int): Simulation steps.
-        param_name (str): The name of the MotorConfig attribute to vary (e.g., 'Dt', 'L', 'Rho_pct').
-        values_to_test (list): A list of values to iterate through for that parameter.
-        motor (MotorConfig): The base motor object to use as a template.
-    """
+def plt_m_parameter(N, param_name, values_to_test, motor, eta_noz=0.95, Ae_At=6.278):
     plt.figure(figsize=(12, 5))
-
-    # Create subplots for Pressure and Thrust
     ax1 = plt.subplot(1, 2, 1)
     ax2 = plt.subplot(1, 2, 2)
 
     for val in values_to_test:
-        # 1. Update the specific parameter dynamically
-        # This replaces motor[id_prop] = prop with a safe object attribute update
         if hasattr(motor, param_name):
             setattr(motor, param_name, val)
         else:
             print(f"Warning: MotorConfig has no attribute '{param_name}'")
             return
 
-        # 2. Run the simulation
-        # Note: calculate_thrust internally calls pressure.py which now uses the
-        # pre-processor and Summerfield criterion.
         F, Pc, t, Cf, It = calculate_thrust(N, motor, eta_noz, Ae_At)
-
-        # 3. Plot with descriptive labels
         label_text = f"{param_name}: {val}"
         ax1.plot(t, Pc, label=label_text)
         ax2.plot(t, F, label=label_text)
 
-    # Formatting Pressure Plot
-    ax1.set_title("Chamber Pressure Comparison")
-    ax1.set_ylabel("Pressure [MPa]")
-    ax1.set_xlabel("Time [s]")
-    ax1.grid(True)
+    ax1.set_title("Chamber Pressure Comparison");
+    ax1.grid(True);
     ax1.legend()
-
-    # Formatting Thrust Plot
-    ax2.set_title("Thrust Comparison")
-    ax2.set_ylabel("Thrust [N]")
-    ax2.set_xlabel("Time [s]")
-    ax2.grid(True)
+    ax2.set_title("Thrust Comparison");
+    ax2.grid(True);
     ax2.legend()
-
-    plt.tight_layout()
+    plt.tight_layout();
     plt.show()
 
-def plt_AeAt(N,arr_aeat,motor,eta_noz=0.85):
-    '''Plots both Thrust (F) and Thrust Coefficient (CF) as a function of time'''
-    for aeat in arr_aeat:
-        F,Pc,t,Cf,It = calculate_thrust(N,motor,eta_noz,aeat)
-        plt.figure(1)
-        plt.plot(t,F)
-        plt.figure(2)
-        plt.plot(t, Cf)
-    plt.grid(True)
+
+def plot_log_pressure(t, Pc_MPa, motor_name):
+    mask = (t > 0) & (Pc_MPa > 0)
+    plt.figure(figsize=(8, 6))
+    plt.loglog(t[mask], Pc_MPa[mask], label='Chamber Pressure', color='blue', linewidth=2)
+    plt.grid(True, which="both", ls="-", alpha=0.5)
+    plt.title(f'Log-Log Performance: {motor_name}')
+    plt.legend();
     plt.show()
+
+
+def resample_data(data, num_points=10000):
+    """
+    Resamples the Time vs Thrust data to a fixed number of points (default 10k).
+    Ensures homogeneity across all exported .eng files.
+    """
+    t = data[:, 0]
+    F = data[:, 1]
+
+    # Create a uniform time grid from start to finish
+    t_uniform = np.linspace(t[0], t[-1], num_points)
+
+    # Interpolate Thrust onto the new grid
+    # 'linear' is safe; 'fill_value' handles floating point edges
+    interpolator = interp1d(t, F, kind='linear', fill_value="extrapolate")
+    F_uniform = interpolator(t_uniform)
+
+    return np.column_stack((t_uniform, F_uniform))
 
 
 def save_array_to_eng_file(data, motor_info, paths, header_comment=None):
     """
     Saves the .eng file to multiple destination paths.
-    Supports an optional header comment (for metadata/signatures).
+    Automatically resamples data to 10,000 points for consistency.
     """
+    # 1. Resample to ensure 10k points
+    data_resampled = resample_data(data, num_points=10000)
+
     # Extract info
     filename = motor_info['filename']
     name = motor_info['name']
@@ -89,22 +86,22 @@ def save_array_to_eng_file(data, motor_info, paths, header_comment=None):
     # Standard OpenRocket format line
     eng_format_line = f"{name} {outer_diameter} {length} {delay_charge_time} {propellant_mass} {total_mass} {manufacturer}"
 
-    # Prepend the comment if provided (e.g., "; { 'prop': 'knsb', ... }")
     if header_comment:
         full_header = f"{header_comment}\n{eng_format_line}"
     else:
         full_header = eng_format_line
 
+    if not isinstance(paths, list):
+        paths = [paths]
+
     for p in paths:
         try:
             target_dir = Path(p)
             target_dir.mkdir(parents=True, exist_ok=True)
-
             full_path = target_dir / filename
 
-            # Note: We set comments='' to prevent numpy from adding its own '#' prefix
-            np.savetxt(full_path, data, fmt='%.6f', delimiter='\t', header=full_header, comments='')
-            print(f"✅ Exported: {full_path}")
+            np.savetxt(full_path, data_resampled, fmt='%.6f', delimiter='\t', header=full_header, comments='')
+            print(f"✅ Exported (10k pts): {full_path}")
 
         except Exception as e:
             print(f"❌ Error saving to {p}: {e}")
