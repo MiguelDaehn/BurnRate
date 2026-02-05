@@ -1,6 +1,8 @@
+# burnrate.py
+import numpy as np
+from scipy.optimize import curve_fit
 from startup import *
-# Removed: from motor import *
-from motor_library import MotorConfig  # Added to support new architecture
+from motor_library import MotorConfig
 
 
 def Ab_f(N, De, Di0, L, s):

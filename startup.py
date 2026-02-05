@@ -1,21 +1,17 @@
-import numpy as np
-from numpy import exp, sin, cos, tan, arcsin, arccos, arctan, pi, where
-from scipy.optimize import curve_fit
-from scipy.optimize import brentq
-
-
-import matplotlib.pyplot as plt
-import pandas as pd
-
-from icecream import ic
+import os
+import sys
 import time
-import warnings
+import warnings # <--- This fixes the NameError
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy.optimize import curve_fit, brentq
+from math import pi, sqrt, exp, log
 
 # Suppress RuntimeWarnings
 # Debugging: turn this off
 warnings.filterwarnings("ignore", category=RuntimeWarning)
 
-path_thrustcurves = '/home/kanamori/.openrocket/ThrustCurves/'
+# path_thrustcurves = '/home/kanamori/.openrocket/ThrustCurves/'
 
 Ru = 8314.34  # kg/mol-K
 patm = 0.101325  # MPa
@@ -25,11 +21,11 @@ g0 = 9.80665
 dict_prop = {'kndx': 0, 'knsb': 1, 'knsu': 2, 'kner': 3, 'knmn': 4, 'knfr': 5, 'knpsb': 6}
 
 # DEPRECATED: now using properties_table
-# rho_prop = {'knsu': 1.889, 'knsb': 1.841, 'kner': 1.820, 'kndx': 1.879, 'knmn': 1.854, 'knpsb': 1.923}
-properties_path = 'data/properties.csv'
+
+properties_path = 'data/csv_files/properties.csv'
 properties_table = np.loadtxt(properties_path, delimiter=',', skiprows=1, usecols=range(1, 8))
 
-KN_table_path = 'data/KN_table.csv'
+KN_table_path = 'data/csv_files/KN_table.csv'
 KN_table = np.loadtxt(KN_table_path, delimiter=',', skiprows=1, usecols=range(0, 7))
 
 def ar(lista):

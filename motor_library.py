@@ -1,4 +1,9 @@
+# motor_library.py
 from dataclasses import dataclass
+import os
+import json
+import numpy as np
+from startup import *
 import numpy as np
 from startup import dict_prop, properties_table, Ru, pi  # Add this line
 
@@ -20,6 +25,24 @@ class MotorConfig:
     ends_surface_inhibited: int = 1
     outer_surface_inhibited: int = 0
     o_ring_thickness: float = 0.0 # Added for TODO #10
+
+def get_config_table_data(motor: MotorConfig):
+    """
+    Helper to format motor data for reports.
+    Moved here to avoid circular imports with reporting.py
+    """
+    # Flattened format: Parameter | Value | Unit
+    return [
+        ["Motor ID", motor.name, "-"],
+        ["Propellant", motor.prop, "-"],
+        ["Grain Length", f"{motor.L:.1f}", "mm"],
+        ["Grain OD", f"{motor.De:.1f}", "mm"],
+        ["Grain ID", f"{motor.Di:.1f}", "mm"],
+        ["No. of Grains", str(motor.Ng), "-"],
+        ["Throat Dia", f"{motor.Dt:.2f}", "mm"],
+        ["Target Pressure", f"{motor.P_target:.1f}", "MPa"],
+    ]
+
 
 MOTOR_LIBRARY = {
     "motor_1": {"prop": 'knsb', "Dt": 9.659, "Rho_pct": 0.95, "Ng": 4, "L": 50.0, "De": 45.0, "Di": 25.0, "P_target": 4.5, "core_surface_inhibited": 1, "ends_surface_inhibited": 1, "outer_surface_inhibited": 0},

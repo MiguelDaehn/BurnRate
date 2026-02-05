@@ -1,14 +1,16 @@
+# reporting.py
 import os
-import matplotlib
-
-# Force headless mode to prevent GUI crashes
-matplotlib.use('Agg')
-import matplotlib.pyplot as plt
-from matplotlib import rcParams
-from fpdf import FPDF
-from motor_library import MotorConfig
-import numpy as np
 import copy
+import numpy as np
+import matplotlib
+import matplotlib.pyplot as plt
+from fpdf import FPDF
+from startup import *
+from motor_library import MotorConfig, get_config_table_data # If you have helper functions
+# Only import thrust if you are running simulations INSIDE the report (like sensitivity)
+from thrust import calculate_thrust
+matplotlib.use('Agg')
+from matplotlib import rcParams
 
 # --- THEME PALETTE (Dark Blue, White, Teal) ---
 COLOR_PRIMARY = (18, 30, 50)  # Deep Midnight Blue

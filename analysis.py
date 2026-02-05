@@ -2,7 +2,7 @@ import os
 import platform
 import numpy as np
 
-# Imports from your existing library
+# Imports from all layers
 from motor_library import load_motor
 from thrust import calculate_thrust
 from plots import save_array_to_eng_file

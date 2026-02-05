@@ -1,8 +1,9 @@
+# thrust.py
 import numpy as np
 from startup import *
-from pressure import calculate_pressure_parameters
 from motor_library import MotorConfig
-
+from burnrate import rdp
+from pressure import calculate_pressure_parameters
 
 def thrust_coefficient(P2: float,
                        Pc: float,
