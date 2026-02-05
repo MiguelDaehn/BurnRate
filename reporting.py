@@ -384,7 +384,7 @@ def create_sensitivity_report(base_motor, param_name, values_to_test, filename="
     headers = [param_name, "Peak P (MPa)", "Max F (N)", "Impulse (Ns)", "Class"]
     pdf.draw_clean_table(headers, results_data, [35, 35, 35, 35, 30], start_x=20)
 
-    if not os.path.exists("results/reports"):
-        os.makedirs("results/reports", exist_ok=True)
-    pdf.output(filename)
+    output_dir = os.path.dirname(filename)
+    if output_dir and not os.path.exists(output_dir):
+        os.makedirs(output_dir, exist_ok=True)
     print(f"✅ Sensitivity Report generated: {filename}")
