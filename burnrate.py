@@ -1,7 +1,7 @@
 from startup import *
-from motor_library import MotorConfig  # Added to support new architecture
+# from motor_library import MotorConfig  # Added to support new architecture
 from startup import *
-
+import time
 
 def Ab_f(N, De, Di0, L, s):
     A_b = pi * N * (0.5 * (De ** 2 - (Di0 + 2 * s) ** 2) + (L - 2 * s) * (Di0 + 2 * s))
@@ -20,7 +20,7 @@ def func_powerlaw(x, a, n):
 target_func = func_powerlaw
 
 
-def BR_from_pressure(id, motor: MotorConfig):  # Changed to accept MotorConfig object
+def BR_from_pressure(id, motor: "MotorConfig"):  # Changed to accept MotorConfig object
     T, Pc = LoadData('BR', id.lower(), 'csv')
     if max(Pc > 1e5):
         Pc = Pc / 10 ** 6
@@ -106,35 +106,62 @@ def pp(propt):
         return np.array([])
 
 
-
-
-def rdp(prop_name, P=1.0):
+def get_n(prop, P=1.0):
     """
-    Calculates burn rate (mm/s) using r = a * P^n.
-    Inputs:
-        prop_name: str (e.g., 'knsb')
-        P: Pressure in MPa
+    Retrieves the burn rate exponent 'n' for a given propellant and pressure.
+    Used for the auto-tuning logic to calculate the correct throat resizing factor.
     """
-    # 1. Safety Clamp (prevents negative/zero pressure crashes)
-    if P < 0.001:
-        P = 0.001
+    # 1. Load the REAL data from the CSV
+    rd_prop = pp(prop)
 
-    # 2. Identify Propellant ID
-    base_prop = prop_name.lower().split('_')[0]
-    prop_id = dict_prop.get(base_prop, 2)  # Default to KNSU (2)
+    # 2. Safety Clamp
+    if P < 0.001: P = 0.001
 
-    try:
-        # Rows 4 and 5 were added in startup.py
-        a = properties_table[4][prop_id]
-        n = properties_table[5][prop_id]
+    # 3. Handle array vs single row
+    if rd_prop.ndim == 1:
+        rd_prop = rd_prop.reshape(1, -1)
 
-        # 3. Calculate Rate
-        r = a * (P ** n)
-        return r
+    # 4. Find the correct pressure interval
+    # Columns from pp(): [0]=Pmin, [1]=Pmax, [2]=a, [3]=n
+    for row in rd_prop:
+        if (P >= row[0]) and (P <= row[1]):
+            return row[3]  # Return 'n' directly
 
-    except IndexError:
-        print(f"Error: Propellant '{prop_name}' (ID {prop_id}) not found.")
-        return 1.0
+    # 5. Fallback/Clamping (matches rdp logic)
+    if P > rd_prop[-1, 1]:
+        return rd_prop[-1, 3]  # Return max pressure 'n'
+    if P < rd_prop[0, 0]:
+        return rd_prop[0, 3]  # Return min pressure 'n'
+
+    return rd_prop[0, 3]
+
+
+def rdp(prop, P=1.0):
+    # 1. Load the REAL data from the CSV (using your existing pp helper)
+    rd_prop = pp(prop)
+
+    # 2. Safety Clamp for the physics engine
+    if P < 0.001: P = 0.001
+
+    # 3. Handle array vs single row (in case file has only 1 line)
+    if rd_prop.ndim == 1:
+        rd_prop = rd_prop.reshape(1, -1)
+
+    # 4. Find the correct pressure interval
+    # Columns from pp(): [0]=Pmin, [1]=Pmax, [2]=a, [3]=n
+    for row in rd_prop:
+        if (P >= row[0]) and (P <= row[1]):
+            return row[2] * (P ** row[3])
+
+    # 5. Fallback: If P is outside defined ranges, clamp to nearest edge
+    # (Prevents crashing if pressure spikes to 11 MPa when max is 10.6)
+    if P > rd_prop[-1, 1]:
+        return rd_prop[-1, 2] * (P ** rd_prop[-1, 3])
+    if P < rd_prop[0, 0]:
+        return rd_prop[0, 2] * (P ** rd_prop[0, 3])
+
+    # If we get here, something is weird, but return a safe default
+    return rd_prop[0, 2] * (P ** rd_prop[0, 3])
 
 def test_BR_from_pressure(id_file, motor_id, p_min=3.5, p_max=4.5):
     from motor_library import load_motor
