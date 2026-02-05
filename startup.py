@@ -1,3 +1,5 @@
+import os
+from pathlib import Path
 import numpy as np
 from numpy import exp, sin, cos, tan, arcsin, arccos, arctan, pi, where
 from scipy.optimize import curve_fit
@@ -15,7 +17,17 @@ import warnings
 # Debugging: turn this off
 warnings.filterwarnings("ignore", category=RuntimeWarning)
 
-path_thrustcurves = '/home/kanamori/.openrocket/ThrustCurves/'
+def get_openrocket_path():
+    """Returns the cross-platform path to OpenRocket ThrustCurves."""
+    if os.name == 'nt':  # Windows
+        # Expands %APPDATA% and joins the rest
+        base = Path(os.path.expandvars(r'%APPDATA%'))
+        return base / "OpenRocket" / "ThrustCurves"
+    else:  # Linux/Unix
+        # Expands ~ to /home/user
+        return Path("~/.openrocket/ThrustCurves").expanduser()
+
+path_thrustcurves = get_openrocket_path()
 
 Ru = 8314.34  # kg/mol-K
 patm = 0.101325  # MPa

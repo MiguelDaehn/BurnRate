@@ -34,7 +34,8 @@ MOTOR_LIBRARY = {
                  "p_min": 0.0, "p_max": 1.6, "P_target": 1.091, "core_surface_inhibited": 1,
                  "ends_surface_inhibited": 1, "outer_surface_inhibited": 0},
     "motor_hadron_04": {"prop": 'knsb', "Dt": 10.3, "Rho_pct": 0.95, "Ng": 3, "L": 60.0, "De": 56.0, "Di": 25.0, "P_target": 4.0, "core_surface_inhibited": 1, "ends_surface_inhibited": 1, "outer_surface_inhibited": 0},
-    "motor_quark3_04": {"prop": 'knsb', "Dt": 8.0, "Rho_pct": 0.95, "Ng": 2, "L": 60.0, "De": 56.0, "Di": 25.0, "P_target": 4.0, "core_surface_inhibited": 1, "ends_surface_inhibited": 1, "outer_surface_inhibited": 0}
+    "motor_quark3_04": {"prop": 'knsb', "Dt": 8.0, "Rho_pct": 0.95, "Ng": 2, "L": 60.0, "De": 56.0, "Di": 25.0, "P_target": 4.0, "core_surface_inhibited": 1, "ends_surface_inhibited": 1, "outer_surface_inhibited": 0},
+"motor_quark3_05": {"prop": 'knsb', "Dt": 8.0, "Rho_pct": 0.95, "Ng": 2, "L": 60.0, "De": 56.0, "Di": 25.0, "P_target": 4.0, "core_surface_inhibited": 1, "ends_surface_inhibited": 1, "outer_surface_inhibited": 0}
 
 }
 
@@ -78,3 +79,45 @@ def process_motor_specs(motor: MotorConfig):
         "dt_ideal": dt_ideal,
         "kn_required": kn_required
     }
+
+
+def run_full_simulation(motor_name, N=10000, eta_noz=0.95, Ae_At=6.278, export_eng=True):
+    from thrust import calculate_thrust
+    from reporting import create_pdf_report
+    from plots import save_array_to_eng_file
+    from startup import path_thrustcurves
+    import os
+    from pathlib import Path
+
+    motor = load_motor(motor_name)
+
+    # Physics
+    F, Pc_MPa, t, Cf, It = calculate_thrust(N, motor, eta_noz, Ae_At)
+
+    if export_eng:
+        # 1. Correct Length (Grain length + O-rings)
+        total_len = (motor.L * motor.Ng) + (max(0, motor.Ng - 1) * motor.o_ring_thickness)
+
+        info_eng = {
+            'filename': f"{motor.name}_sim",
+            'name': motor.name,
+            'outer_diameter': str(motor.De),
+            'length': f"{total_len:.2f}",
+            'delay_charge_time': 'P',
+            'propellant_mass': f"{(It / 800):.3f}",
+            'total_mass': f"{(It / 800):.3f}",
+            'manufacturer': 'TauRocketTeam'
+        }
+
+        # 2. Define Export Paths (Cross-Platform)
+        # We ensure "results/eng_files" is relative to the project root
+        project_results = Path("results/eng_files")
+        export_paths = [project_results, path_thrustcurves]
+
+        save_array_to_eng_file(np.column_stack((t, F)), info_eng, export_paths)
+
+    # 3. Report
+    report_path = os.path.join("results", "reports", f"{motor.name}_Report.pdf")
+    create_pdf_report(motor, t, Pc_MPa, F, It, filename=report_path)
+
+    return It
