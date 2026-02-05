@@ -59,7 +59,8 @@ def calculate_pressure_parameters(N, motor: MotorConfig, c_star=0):
     for i in range(1, N):
         curr_di = Di + csi * 2 * s[i]
         curr_de = De - osi * 2 * s[i]
-        curr_l = (L0 * Ng) - esi * 2 * s[i]
+        curr_l_individual = L0 - (esi * 2 * s[i])
+        curr_l = (curr_l_individual * Ng)
 
         Ab_mm2 = ((pi / 4) * (curr_de ** 2 - curr_di ** 2) * 2 * Ng * esi) + \
                  (pi * curr_de * curr_l * osi) + \
