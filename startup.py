@@ -18,16 +18,20 @@ import warnings
 warnings.filterwarnings("ignore", category=RuntimeWarning)
 
 def get_openrocket_path():
-    """Returns the cross-platform path to OpenRocket ThrustCurves."""
+    """
+    Returns the correct path for OpenRocket ThrustCurves depending on the OS.
+    """
     if os.name == 'nt':  # Windows
-        # Expands %APPDATA% and joins the rest
+        # Finds C:/Users/Name/AppData/Roaming/OpenRocket/ThrustCurves
         base = Path(os.path.expandvars(r'%APPDATA%'))
         return base / "OpenRocket" / "ThrustCurves"
     else:  # Linux/Unix
-        # Expands ~ to /home/user
+        # Finds /home/name/.openrocket/ThrustCurves
         return Path("~/.openrocket/ThrustCurves").expanduser()
 
+# Global path variable
 path_thrustcurves = get_openrocket_path()
+
 
 Ru = 8314.34  # kg/mol-K
 patm = 0.101325  # MPa

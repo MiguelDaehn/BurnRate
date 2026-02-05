@@ -1,4 +1,6 @@
 import os
+from pathlib import Path
+import numpy as np
 from thrust import *
 
 
@@ -66,34 +68,42 @@ def plt_AeAt(N,arr_aeat,motor,eta_noz=0.85):
     plt.show()
 
 
-def save_array_to_eng_file(data, motor_info, path="results/eng_files/"):
+def save_array_to_eng_file(data, motor_info, paths):
     """
-    Saves a 2D numpy array to a .eng file.
-
-    Args:
-        path: The target directory. Defaults to 'results/eng_files/'.
+    Saves the .eng file to multiple destination paths.
     """
-    filename, name, outer_diameter, length, delay_charge_time, propellant_mass, total_mass, manufacturer = motor_info.values()
+    # Extract info
+    filename = motor_info['filename']
+    name = motor_info['name']
+    outer_diameter = motor_info['outer_diameter']
+    length = motor_info['length']
+    delay_charge_time = motor_info['delay_charge_time']
+    propellant_mass = motor_info['propellant_mass']
+    total_mass = motor_info['total_mass']
+    manufacturer = motor_info['manufacturer']
 
-    # Ensure the filename ends with .eng
     if not filename.endswith('.eng'):
         filename += '.eng'
 
-    # Create the header string
+    # Create the standard OpenRocket header
     header = f"{name} {outer_diameter} {length} {delay_charge_time} {propellant_mass} {total_mass} {manufacturer}"
 
-    # 1. Clean Path Construction
-    # We trust the 'path' argument. We do NOT prepend a hardcoded string.
-    full_path = os.path.join(path, filename)
+    # Loop through all requested paths (e.g., local results AND OpenRocket folder)
+    for p in paths:
+        try:
+            target_dir = Path(p)
 
-    # 2. Extract the directory from the full path and create it if needed
-    directory = os.path.dirname(full_path)
-    if directory and not os.path.exists(directory):
-        os.makedirs(directory)
+            # Create directory if it doesn't exist
+            target_dir.mkdir(parents=True, exist_ok=True)
 
-    # Save
-    np.savetxt(full_path, data, fmt='%.6f', delimiter='\t', header=header, comments='')
-    print(f"File saved to: {full_path}")
+            full_path = target_dir / filename
+
+            np.savetxt(full_path, data, fmt='%.6f', delimiter='\t', header=header, comments='')
+            print(f"✅ Successfully exported to: {full_path}")
+
+        except Exception as e:
+            print(f"❌ Error saving to {p}: {e}")
+
 
 def plot_log_pressure(t, Pc_MPa, motor_name):
     """
