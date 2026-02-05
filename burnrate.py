@@ -96,15 +96,17 @@ def BR_from_pressure(id, motor: MotorConfig):  # Changed to accept MotorConfig o
 def pp(propt):
     # Strip sub-variants (e.g., 'knsu_geprop_02' -> 'knsu') to find the CSV
     base_prop = propt.split('_')[0]
-    rddatapath = 'data/BR_dict_' + base_prop + '.csv'
+
+    # --- UPDATE: Pointing to the new subfolder ---
+    # Was: 'data/BR_dict_' + ...
+    rddatapath = f'data/propellants/BR_dict_{base_prop}.csv'
 
     try:
         rdp_data = np.loadtxt(rddatapath, delimiter=',', skiprows=1, usecols=range(1, 5))
         return rdp_data if rdp_data.ndim > 1 else rdp_data.reshape(1, -1)
     except FileNotFoundError:
-        print(f"Warning: Burn rate file for {base_prop} not found.")
+        print(f"Warning: Burn rate file for {base_prop} not found at {rddatapath}")
         return np.array([])
-
 
 def rdp(prop, P=1.0):
     rd_prop = pp(prop)
