@@ -233,6 +233,8 @@ def get_config_table_data(motor):
 # ==========================================
 # REPORT 1: INDIVIDUAL MOTOR (Blue/Teal)
 # ==========================================
+# In reporting.py
+
 def create_pdf_report(motor: MotorConfig, t, Pc_MPa, F, It, filename="report.pdf"):
     set_plot_style()
     pdf = DashboardPDF()
@@ -257,12 +259,10 @@ def create_pdf_report(motor: MotorConfig, t, Pc_MPa, F, It, filename="report.pdf
 
     pdf.set_y(start_y + 32)
 
-    # 3. CONFIGURATION TABLE (SINGLE SET OF COLUMNS)
+    # 3. CONFIGURATION TABLE
     pdf.draw_section_title("Technical Specifications")
     config_headers = ["Parameter", "Value", "Unit"]
     config_data = get_config_table_data(motor)
-
-    # Center the table: Total width = 80+50+30 = 160. Page width 210. Start x ~25.
     pdf.draw_clean_table(config_headers, config_data, [80, 50, 30], start_x=25)
     pdf.ln(8)
 
@@ -298,12 +298,14 @@ def create_pdf_report(motor: MotorConfig, t, Pc_MPa, F, It, filename="report.pdf
     pdf.set_text_color(*COLOR_TEXT)
     pdf.cell(0, 5, f"Summary: Class {cls} motor delivering {It:.0f} Ns with a peak thrust of {max_f:.0f} N.", 0, 1, 'C')
 
-    # Save
-    if not os.path.exists(os.path.dirname(filename)) and os.path.dirname(filename) != '':
-        os.makedirs(os.path.dirname(filename))
-    pdf.output('./results/reports/'+filename)
-    print(f"✅ Design Report generated: {filename}")
+    # --- FIX: Trust the provided filename path ---
+    # Ensure directory exists
+    output_dir = os.path.dirname(filename)
+    if output_dir and not os.path.exists(output_dir):
+        os.makedirs(output_dir)
 
+    pdf.output(filename)
+    print(f"✅ Design Report generated: {filename}")
 
 # ==========================================
 # REPORT 2: SENSITIVITY (Blue/Teal)

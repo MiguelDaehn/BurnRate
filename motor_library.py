@@ -38,14 +38,6 @@ MOTOR_LIBRARY = {
 
 }
 
-import os
-import platform
-import numpy as np
-from motor_library import load_motor
-from thrust import calculate_thrust
-from plots import save_array_to_eng_file
-from reporting import create_pdf_report
-
 
 def run_motor_analysis(motor_name: str):
     """
