@@ -14,7 +14,7 @@ def main():
     mot_2 = "motor_quark3_04"
     MOT = mot_2
 
-    run_motor_analysis(MOT, auto_size=False)
+    run_motor_analysis(MOT, auto_size=True)
 
 
 
