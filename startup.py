@@ -155,25 +155,34 @@ def find_M2(Ae_At, k):
         return 1.0
 
 
-def find_kn_max(prop_type, P_target):
-    '''PROP_TYPE: "KNSU", "KNSB", etc. P_TARGET: MPa'''
-    prop_key = prop_type.lower().split('_')[0]  # Handle sub-variants
+def find_kn_max(prop_type, P_target, efficiency=0.95):
+    '''
+    Calculates required Kn for a target pressure.
+    Includes efficiency factor to match simulation physics.
+    '''
+    prop_key = prop_type.lower().split('_')[0]
     prop = dict_prop.get(prop_key, 2)
 
     if prop >= 1:
         prop += 2
-
-    # Logic for KNDX variants as per your original code
     if prop == 0:
-        if (P_target > 2.758) and (P_target <= 5.861):
-            prop = 1
-        if P_target > 5.861:
-            prop = 2
+        if (P_target > 2.758) and (P_target <= 5.861): prop = 1
+        if P_target > 5.861: prop = 2
 
     kn_f = lambda P, a, b, c, d, e, f, g: a + b * P ** 1 + c * P ** 2 + d * P ** 3 + e * P ** 4 + f * P ** 5 + g * P ** 6
-
     a, b, c, d, e, f, g = KN_table[prop, :]
-    return kn_f(P_target, a, b, c, d, e, f, g)
+
+    Kn_ideal = kn_f(P_target, a, b, c, d, e, f, g)
+
+    # ADJUSTMENT:
+    # Steady state pressure: P = (Kn * rho * a * C*)^(1/(1-n))
+    # If C* is reduced by efficiency (eta), P drops.
+    # To maintain P, we need to increase Kn by factor (1/eta).
+    # This is a linear correction on C*, which is inversely proportional to Kn.
+
+    Kn_required = Kn_ideal / efficiency
+
+    return Kn_required
 
 def main():
 

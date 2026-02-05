@@ -69,7 +69,8 @@ def process_motor_specs(motor: MotorConfig):
     total_grain_l = motor.L * motor.Ng
     lc_with_rings = (total_grain_l + (motor.Ng * motor.o_ring_thickness)) * 1.2
 
-    kn_required = find_kn_max(base_prop, motor.P_target)
+    # FIX: Pass the motor's combustion efficiency (nuc) to the sizing function
+    kn_required = find_kn_max(base_prop, motor.P_target, efficiency=motor.nuc)
 
     Ab_max = ((pi / 4) * (motor.De ** 2 - motor.Di ** 2) * 2 * motor.Ng * motor.ends_surface_inhibited) + \
              (pi * motor.De * total_grain_l * motor.outer_surface_inhibited) + \
