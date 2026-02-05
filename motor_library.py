@@ -33,6 +33,8 @@ MOTOR_LIBRARY = {
     "motor_tauzinha": {"prop": 'knsu', "Dt": 12, "Rho_pct": 0.95, "Ng": 2, "L": 70, "De": 48, "Di": 20,
                  "p_min": 0.0, "p_max": 1.6, "P_target": 1.091, "core_surface_inhibited": 1,
                  "ends_surface_inhibited": 1, "outer_surface_inhibited": 0},
+    "motor_hadron_04": {"prop": 'knsb', "Dt": 10.3, "Rho_pct": 0.95, "Ng": 3, "L": 60.0, "De": 56.0, "Di": 25.0, "P_target": 4.0, "core_surface_inhibited": 1, "ends_surface_inhibited": 1, "outer_surface_inhibited": 0},
+    "motor_quark3_04": {"prop": 'knsb', "Dt": 8.0, "Rho_pct": 0.95, "Ng": 2, "L": 60.0, "De": 56.0, "Di": 25.0, "P_target": 4.0, "core_surface_inhibited": 1, "ends_surface_inhibited": 1, "outer_surface_inhibited": 0}
 
 }
 
