@@ -62,15 +62,15 @@ def process_motor_specs(motor: MotorConfig):
 
     base_prop = motor.prop.split('_')[0]
     dp = dict_prop.get(base_prop, 2)
-    rho_ideal = properties_table[0][dp]
+    rho_ideal = properties_table[dp][0]  # [Propellant][Param_Index]
+    k = properties_table[dp][1]
     rho_g = 1000 * rho_ideal * motor.Rho_pct
-    k = properties_table[1][dp]
 
     # Extract 'n' (burn rate exponent) for the iterative solver
     n_exponent = properties_table[5][dp]
 
     total_grain_l = motor.L * motor.Ng
-    lc_with_rings = (total_grain_l + (motor.Ng * motor.o_ring_thickness)) * 1.2
+    lc_with_rings = (total_grain_l + (motor.Ng * motor.o_ring_thickness))
 
     # Initial guess using efficiency correction
     kn_required = find_kn_max(base_prop, motor.P_target, efficiency=motor.nuc)
