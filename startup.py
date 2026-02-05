@@ -6,7 +6,7 @@ from numpy import exp, sin, cos, tan, arcsin, arccos, arctan, pi, where
 from scipy.optimize import brentq
 import matplotlib.pyplot as plt
 import warnings
-
+from icecream import ic
 # Suppress RuntimeWarnings
 warnings.filterwarnings("ignore", category=RuntimeWarning)
 
@@ -18,6 +18,75 @@ Ru = const.R  # 8.314 J/mol·K
 g0 = const.g  # 9.80665 m/s²
 patm = 0.101325  # MPa
 patm_pa = patm * 1e6
+
+def ar(lista):
+    return np.array(lista)
+
+
+def err(x1, x2):
+    if x1 == 0:
+        return 0
+    return abs((x1 - x2) / x1)
+
+
+def err_arr(value, array):
+    er = ar([err(value, i) for i in array])
+    return er
+
+
+def where_interval(Array, min_val, max_val):
+    Array = ar(Array)
+
+    A = np.where(Array >= min_val)[0]
+    B = np.where(Array <= max_val)[0]
+
+    C = np.intersect1d(A, B)
+
+    return C
+
+
+def find_er(value, array):
+    '''Finds the id of the value with the mininum relative error to the desired value.'''
+    er = err_arr(value, array)
+    K = where(min(er))[0]
+    return K
+
+
+def LoadData(type, id, format='csv'):
+    path_csv = 'data/' + type + '_' + id + '.' + format
+    try:
+        data = np.loadtxt(path_csv, delimiter='\t', skiprows=1)
+    except:
+        data = np.loadtxt(path_csv, delimiter=',', skiprows=1)
+    T = data[:, 0]
+    D1 = data[:, 1]
+
+    return T, D1
+
+
+def pl(x, y, lx='', ly='', tit='', labelf='', x0f=[0, None], y0f=[0, None], log=0, show=1):
+    if log == 0:
+        plt.plot(x, y, label=labelf)
+        pass
+    else:
+        plt.loglog(x, y, label=labelf)
+    plt.grid(True)
+    plt.ylabel(ly)
+    plt.xlabel(lx)
+    plt.title(tit)
+    plt.ylim(y0f[0], y0f[1])
+    plt.xlim(x0f[0], x0f[1])
+    plt.legend()
+    if show == 1:
+        plt.show()
+    return
+
+
+def pl_m(x, y_arr):
+    for row in y_arr:
+        pl(x, row, x0f=[None, None], y0f=[None, None], show=0)
+    plt.show()
+    return 0
 
 def get_openrocket_path():
     if os.name == 'nt':  # Windows
@@ -41,15 +110,8 @@ dict_prop = {
 # --- LOAD PROPERTIES & FIX TABLE ---
 # 1. Load Thermo properties from CSV (Rows 0-3: rho, k, M, To)
 properties_path = 'data/properties.csv'
-base_properties = np.loadtxt(properties_path, delimiter=',', skiprows=1, usecols=range(1, 8))
+properties_table = np.loadtxt(properties_path, delimiter=',', skiprows=1, usecols=range(1, 8))
 
-# 2. Define Burn Rate parameters (Rows 4-5: a, n)
-# Standard Nakka values: [KNDX, KNSB, KNSU, KNER, KNMN, KNFR, KNPSB]
-burn_rate_a = [4.64, 4.20, 8.26, 6.70, 8.26, 8.26, 8.26]
-burn_rate_n = [0.38, 0.44, 0.319, 0.49, 0.319, 0.319, 0.319]
-
-# 3. Stack to create full properties_table (6 rows)
-properties_table = np.vstack([base_properties, burn_rate_a, burn_rate_n])
 
 # Load KN table
 KN_table_path = 'data/KN_table.csv'

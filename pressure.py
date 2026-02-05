@@ -36,29 +36,41 @@ def calculate_pressure_parameters(N, motor: MotorConfig, c_star=0):
 
     t = np.zeros(N)
     rdot = np.zeros(N)
-    Pc_Mpa = np.ones(N) * patm
+    # TODO: FIX THIS MAGIC NUMBER BELOW, 5*PATM should be the initial pressure from the igniter but still is a magic number
+    Pc_Mpa = np.ones(N) * (5*patm)
+    Pc0 = Pc_Mpa[0]
     m_grain = np.zeros(N)
     # CURRENT (BROKEN):
     m_sto = np.zeros(N)
 
     # FIX:
-    V_free_0 = Vc - (m_grain[0] / rho_g)
-    m_sto[0] = (patm * 1e6 * V_free_0) / ratto  # Ideal Gas Law: m = PV/RT
-
     Vg0 = ((pi / 4) * (De ** 2 - Di ** 2) * L0 * Ng) / 1000 ** 3
+    V_free_initial = Vc - Vg0  # This is the actual empty space available for gas
+    Pc0 = 5 * patm
+    Pc_Mpa[0] = Pc0
     m_grain[0] = rho_g * Vg0
-    rdot[0] = rdp(prop, patm)
+    rdot[0] = rdp(prop, Pc0)
+
+    # 2. Calculate Initial Free Volume (The empty space)
+    # Vc is the empty motor case volume (calculated earlier in your code)
+    V_free_initial = Vc - Vg0
+
+
+    # 3. Initialize Mass for Atmospheric Pressure (0.1 MPa)
+    # This prevents the vacuum start AND the pressure spike
+    # m_sto[0] = (Pc0 * 1e6 * V_free_initial) / ratto
+    # 4. Set Initial Burn Rate
+
 
     # =========================================================
     # [CRITICAL] IGNITER KICK
     # Force the chamber to start at 0.5 MPa (70 psi).
     # This prevents the "Fizzle" where flow drains too fast.
     # =========================================================
-    P_start = 0.5
-    Pc_Mpa[0] = P_start
-    m_sto[0] = (P_start * 1e6 * Vc) / ratto
-    # =========================================================
 
+    m_sto[0] = (Pc0 * 1e6 * Vc) / ratto
+    # =========================================================
+    # ic(osi,csi,esi)
     for i in range(1, N):
         curr_di = Di + csi * 2 * s[i]
         curr_de = De - osi * 2 * s[i]
@@ -70,14 +82,13 @@ def calculate_pressure_parameters(N, motor: MotorConfig, c_star=0):
         m_grain[i] = rho_g * Vg_m3
 
         # Safety: Use previous pressure, clamped to 1 atm
-        safe_P = max(Pc_Mpa[i - 1], patm)
-        rdot[i] = rdp(prop, safe_P)
+        rdot[i] = (rdp(prop, Pc_Mpa[i-1]))
 
         t[i] = t[i - 1] + (incs / rdot[i] if rdot[i] > 0 else 0.001)
         dt = t[i] - t[i - 1]
 
         mdot_gen = (m_grain[i - 1] - m_grain[i]) / dt
-        mdot_noz = (safe_P * 1e6) * A_star * par_AI
+        mdot_noz = (Pc_Mpa[i-1] * 1e6) * A_star * par_AI
 
         m_stodot = mdot_gen - mdot_noz
         m_sto[i] = m_sto[i - 1] + m_stodot * dt
@@ -90,9 +101,9 @@ def calculate_pressure_parameters(N, motor: MotorConfig, c_star=0):
         Pc_Mpa[i] = ((m_sto[i] / V_free) * ratto) / 1e6
 
     # Tail-off logic
-    t_inc, tbout, pbout = 0.001, t[-1], Pc_Mpa[-1]
+    t_inc, tbout, pbout = 0.0001, t[-1], Pc_Mpa[-1]
     if pbout > patm * 1.05:
-        while Pc_Mpa[-1] > patm * 1.01:
+        while (Pc_Mpa[-1]) > (patm) * 1.01:
             t_next = t[-1] + t_inc
             p_next = pbout * np.exp(-ratto * A_star * (t_next - tbout) / (Vc * c_star))
             if p_next < patm:
@@ -100,9 +111,10 @@ def calculate_pressure_parameters(N, motor: MotorConfig, c_star=0):
                 break
             t = np.append(t, t_next)
             Pc_Mpa = np.append(Pc_Mpa, p_next)
-            if len(t) > N * 2: break
+            if len(t) > N * 1.1: break
 
-    return t, Pc_Mpa, k, tbout, np.average(rdot), m_grain[0]
+    # ic(tbout, rdot)
+    return t, ic(Pc_Mpa), k, tbout, np.average(rdot), m_grain[0]
 
 if __name__ == '__main__':
     # Test with the new library structure

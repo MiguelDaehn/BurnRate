@@ -1,7 +1,8 @@
 from dataclasses import dataclass, asdict
 import numpy as np
 from startup import dict_prop, properties_table, Ru, pi
-
+from burnrate import get_n
+from icecream import ic
 
 @dataclass
 class MotorConfig:
@@ -67,7 +68,7 @@ def process_motor_specs(motor: MotorConfig):
     rho_g = 1000 * rho_ideal * motor.Rho_pct
 
     # Extract 'n' (burn rate exponent) for the iterative solver
-    n_exponent = properties_table[5][dp]
+    n_exponent = get_n(base_prop,1)
 
     total_grain_l = motor.L * motor.Ng
     lc_with_rings = (total_grain_l + (motor.Ng * motor.o_ring_thickness))
@@ -83,6 +84,8 @@ def process_motor_specs(motor: MotorConfig):
     dt_ideal = np.sqrt(at_ideal / (pi / 4))
 
     return {
+        "prop": motor.prop,
+        "base_prop": base_prop,
         "rho_g": rho_g,
         "k": k,
         "n": n_exponent,  # Return 'n' for the solver
@@ -134,7 +137,7 @@ def resolve_filename(base_name, signature, paths):
         counter += 1
 
 
-def run_full_simulation(motor_name, N=10000, eta_noz=0.95, Ae_At=6.278, export_eng=True, auto_size_throat=False):
+def run_full_simulation(motor_name, N=30_000, eta_noz=0.95, Ae_At=6.278, export_eng=True, auto_size_throat=False):
     from thrust import calculate_thrust
     from reporting import create_pdf_report
     from plots import save_array_to_eng_file
@@ -149,13 +152,15 @@ def run_full_simulation(motor_name, N=10000, eta_noz=0.95, Ae_At=6.278, export_e
     if auto_size_throat:
         # 1. Initial Guess
         motor.Dt = specs['dt_ideal']
+        #TODO: tem um problema aqui: tu tá pegando apenas o base_prop, não pega a diferença entre diferentes versoes do KNSU por exemplo
+        prop = specs['prop']
         target_p = motor.P_target
-        n_exp = specs['n']
+        n_exp = ic(get_n(prop,target_p))
 
         print(f"🔧 TUNING: Initial Guess Dt={motor.Dt:.3f}mm for Target {target_p} MPa...")
 
         # Iteration Loop (Max 3 passes)
-        for i in range(3):
+        for i in range(5):
             F_check, Pc_check, _, _, _ = calculate_thrust(1000, motor, eta_noz, Ae_At)
             p_peak = np.max(Pc_check)
 
@@ -167,6 +172,7 @@ def run_full_simulation(motor_name, N=10000, eta_noz=0.95, Ae_At=6.278, export_e
 
             # Physics-based Correction: D_new = D_old * (P_current / P_target) ^ ((1-n)/2)
             # This derivation comes from P ~ Kn^(1/(1-n)) ~ Dt^(-2/(1-n))
+
             correction_factor = (p_peak / target_p) ** ((1 - n_exp) / 2)
 
             print(f"   Pass {i + 1}: Peak {p_peak:.3f} MPa. Adjusting Dt by factor {correction_factor:.4f}...")
