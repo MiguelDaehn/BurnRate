@@ -68,9 +68,10 @@ def plt_AeAt(N,arr_aeat,motor,eta_noz=0.85):
     plt.show()
 
 
-def save_array_to_eng_file(data, motor_info, paths):
+def save_array_to_eng_file(data, motor_info, paths, header_comment=None):
     """
     Saves the .eng file to multiple destination paths.
+    Supports an optional header comment (for metadata/signatures).
     """
     # Extract info
     filename = motor_info['filename']
@@ -85,25 +86,28 @@ def save_array_to_eng_file(data, motor_info, paths):
     if not filename.endswith('.eng'):
         filename += '.eng'
 
-    # Create the standard OpenRocket header
-    header = f"{name} {outer_diameter} {length} {delay_charge_time} {propellant_mass} {total_mass} {manufacturer}"
+    # Standard OpenRocket format line
+    eng_format_line = f"{name} {outer_diameter} {length} {delay_charge_time} {propellant_mass} {total_mass} {manufacturer}"
 
-    # Loop through all requested paths (e.g., local results AND OpenRocket folder)
+    # Prepend the comment if provided (e.g., "; { 'prop': 'knsb', ... }")
+    if header_comment:
+        full_header = f"{header_comment}\n{eng_format_line}"
+    else:
+        full_header = eng_format_line
+
     for p in paths:
         try:
             target_dir = Path(p)
-
-            # Create directory if it doesn't exist
             target_dir.mkdir(parents=True, exist_ok=True)
 
             full_path = target_dir / filename
 
-            np.savetxt(full_path, data, fmt='%.6f', delimiter='\t', header=header, comments='')
-            print(f"✅ Successfully exported to: {full_path}")
+            # Note: We set comments='' to prevent numpy from adding its own '#' prefix
+            np.savetxt(full_path, data, fmt='%.6f', delimiter='\t', header=full_header, comments='')
+            print(f"✅ Exported: {full_path}")
 
         except Exception as e:
             print(f"❌ Error saving to {p}: {e}")
-
 
 def plot_log_pressure(t, Pc_MPa, motor_name):
     """

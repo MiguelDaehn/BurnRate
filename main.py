@@ -17,25 +17,25 @@ def main():
     Uncomment the function you want to run.
     """
     print("--- SRM Simulator Ready ---")
-    mot_1 = "motor_hadron_04"
-    mot_2 = "motor_quark3_06"
+    mot_1 = "Hadron"
+    mot_2 = "Quark3"
     MOT = mot_2
 
-    run_full_simulation("motor_quark3_06")
+    run_full_simulation(MOT)
 
     # [1] STANDARD RUN
     # The default workhorse. Check stats and standard plots.
-    # demo_single_run(mot_2)
+    # demo_single_run(MOT)
 
     # [2] SENSITIVITY ANALYSIS
     # Compare different geometries side-by-side.
-    # demo_parameter_sweeps(mot)
+    # demo_parameter_sweeps(MOT)
 
     # CREATE PDF REPORT FOR MULTIPLE CONFIGURATIONS
-    # demo_sensitivity_report(mot,n_analises=10)
+    # demo_sensitivity_report(MOT,n_analises=10)
 
 
-    # OUTDATED FUNCTIONS BELOW
+    # OUTDATED FUNCTIONS BELOW ----//--/----//--/----//--/----//--/----//--/----//--/----//--/----//--/----//--/----//
     # [3] EXPORT
     # Generate files for flight simulation.
     # demo_export_openrocket(MOT)
