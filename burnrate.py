@@ -1,6 +1,6 @@
 from startup import *
-# Removed: from motor import *
 from motor_library import MotorConfig  # Added to support new architecture
+from startup import *
 
 
 def Ab_f(N, De, Di0, L, s):
@@ -106,19 +106,35 @@ def pp(propt):
         return np.array([])
 
 
-def rdp(prop, P=1.0):
-    rd_prop = pp(prop)
-    if P > 1e5:
-        P = P * 1e-6
 
-    # Logic to find the correct pressure interval
-    for row in rd_prop:
-        if (P >= row[0]) and (P <= row[1]):
-            return row[2] * P ** row[3]
 
-    print(f'Propellant: {prop} at Pressure: {P}')
-    raise ValueError('ERROR: no adequate pressure interval found!')
+def rdp(prop_name, P=1.0):
+    """
+    Calculates burn rate (mm/s) using r = a * P^n.
+    Inputs:
+        prop_name: str (e.g., 'knsb')
+        P: Pressure in MPa
+    """
+    # 1. Safety Clamp (prevents negative/zero pressure crashes)
+    if P < 0.001:
+        P = 0.001
 
+    # 2. Identify Propellant ID
+    base_prop = prop_name.lower().split('_')[0]
+    prop_id = dict_prop.get(base_prop, 2)  # Default to KNSU (2)
+
+    try:
+        # Rows 4 and 5 were added in startup.py
+        a = properties_table[4][prop_id]
+        n = properties_table[5][prop_id]
+
+        # 3. Calculate Rate
+        r = a * (P ** n)
+        return r
+
+    except IndexError:
+        print(f"Error: Propellant '{prop_name}' (ID {prop_id}) not found.")
+        return 1.0
 
 def test_BR_from_pressure(id_file, motor_id, p_min=3.5, p_max=4.5):
     from motor_library import load_motor

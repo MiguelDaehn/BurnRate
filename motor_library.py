@@ -46,7 +46,7 @@ MOTOR_LIBRARY = {
                        "p_max": 1.6, "P_target": 1.091},
     "Hadron": {"prop": 'knsb', "Dt": 10.3, "Rho_pct": 0.95, "Ng": 3, "L": 60.0, "De": 56.0, "Di": 25.0,
                "P_target": 4.0},
-    "Quark3": {"prop": 'knsb', "Dt": 8.39, "Rho_pct": 0.95, "Ng": 2, "L": 60.0, "De": 56.0, "Di": 25.0, "P_target": 4.0,
+    "Quark3": {"prop": 'knsb', "Dt": 8.0, "Rho_pct": 0.95, "Ng": 2, "L": 60.0, "De": 56.0, "Di": 25.0, "P_target": 4.0,
                "o_ring_thickness": 3.3}
 }
 
@@ -66,10 +66,13 @@ def process_motor_specs(motor: MotorConfig):
     rho_g = 1000 * rho_ideal * motor.Rho_pct
     k = properties_table[1][dp]
 
+    # Extract 'n' (burn rate exponent) for the iterative solver
+    n_exponent = properties_table[5][dp]
+
     total_grain_l = motor.L * motor.Ng
     lc_with_rings = (total_grain_l + (motor.Ng * motor.o_ring_thickness)) * 1.2
 
-    # FIX: Pass the motor's combustion efficiency (nuc) to the sizing function
+    # Initial guess using efficiency correction
     kn_required = find_kn_max(base_prop, motor.P_target, efficiency=motor.nuc)
 
     Ab_max = ((pi / 4) * (motor.De ** 2 - motor.Di ** 2) * 2 * motor.Ng * motor.ends_surface_inhibited) + \
@@ -82,6 +85,7 @@ def process_motor_specs(motor: MotorConfig):
     return {
         "rho_g": rho_g,
         "k": k,
+        "n": n_exponent,  # Return 'n' for the solver
         "lc": lc_with_rings,
         "dt_ideal": dt_ideal,
         "kn_required": kn_required
@@ -139,21 +143,41 @@ def run_full_simulation(motor_name, N=10000, eta_noz=0.95, Ae_At=6.278, export_e
     from pathlib import Path
 
     motor = load_motor(motor_name)
+    specs = process_motor_specs(motor)
 
-    # --- OPTIMIZATION STEP ---
+    # --- AUTO-SIZING LOOP ---
     if auto_size_throat:
-        specs = process_motor_specs(motor)
-        old_dt = motor.Dt
+        # 1. Initial Guess
         motor.Dt = specs['dt_ideal']
-        print(
-            f"🔧 AUTO-SIZING: Throat adjusted from {old_dt:.3f}mm to {motor.Dt:.3f}mm to match P_target={motor.P_target}MPa")
+        target_p = motor.P_target
+        n_exp = specs['n']
 
-    # Physics
+        print(f"🔧 TUNING: Initial Guess Dt={motor.Dt:.3f}mm for Target {target_p} MPa...")
+
+        # Iteration Loop (Max 3 passes)
+        for i in range(3):
+            F_check, Pc_check, _, _, _ = calculate_thrust(1000, motor, eta_noz, Ae_At)
+            p_peak = np.max(Pc_check)
+
+            error = (p_peak - target_p) / target_p
+
+            if abs(error) < 0.01:  # Within 1%
+                print(f"✅ CONVERGED: Dt={motor.Dt:.3f}mm -> P_peak={p_peak:.3f} MPa")
+                break
+
+            # Physics-based Correction: D_new = D_old * (P_current / P_target) ^ ((1-n)/2)
+            # This derivation comes from P ~ Kn^(1/(1-n)) ~ Dt^(-2/(1-n))
+            correction_factor = (p_peak / target_p) ** ((1 - n_exp) / 2)
+
+            print(f"   Pass {i + 1}: Peak {p_peak:.3f} MPa. Adjusting Dt by factor {correction_factor:.4f}...")
+            motor.Dt = motor.Dt * correction_factor
+
+    # --- FINAL SIMULATION ---
+    # Run with high resolution (N)
     F, Pc_MPa, t, Cf, It = calculate_thrust(N, motor, eta_noz, Ae_At)
 
     if export_eng:
         total_len = (motor.L * motor.Ng) + (motor.Ng * motor.o_ring_thickness)
-        specs = process_motor_specs(motor)
         rho_g = specs['rho_g']
         vol_grain = (pi / 4) * (motor.De ** 2 - motor.Di ** 2) * motor.L * motor.Ng * 1e-9
         prop_mass = vol_grain * rho_g
