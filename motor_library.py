@@ -152,16 +152,15 @@ def run_full_simulation(motor_name, N=30_000, eta_noz=0.95, Ae_At=6.278, export_
     if auto_size_throat:
         # 1. Initial Guess
         motor.Dt = specs['dt_ideal']
-        #TODO: tem um problema aqui: tu tá pegando apenas o base_prop, não pega a diferença entre diferentes versoes do KNSU por exemplo
         prop = specs['prop']
         target_p = motor.P_target
-        n_exp = ic(get_n(prop,target_p))
+        n_exp = get_n(prop,target_p)
 
         print(f"🔧 TUNING: Initial Guess Dt={motor.Dt:.3f}mm for Target {target_p} MPa...")
 
         # Iteration Loop (Max 3 passes)
         for i in range(5):
-            F_check, Pc_check, _, _, _ = calculate_thrust(1000, motor, eta_noz, Ae_At)
+            F_check, Pc_check, _, _, _ = calculate_thrust(1000, ic(motor), eta_noz, Ae_At)
             p_peak = np.max(Pc_check)
 
             error = (p_peak - target_p) / target_p

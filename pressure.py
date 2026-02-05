@@ -37,7 +37,7 @@ def calculate_pressure_parameters(N, motor: MotorConfig, c_star=0):
     t = np.zeros(N)
     rdot = np.zeros(N)
     # TODO: FIX THIS MAGIC NUMBER BELOW, 5*PATM should be the initial pressure from the igniter but still is a magic number
-    Pc_Mpa = np.ones(N) * (5*patm)
+    Pc_Mpa = np.ones(N) * (patm)
     Pc0 = Pc_Mpa[0]
     m_grain = np.zeros(N)
     # CURRENT (BROKEN):
@@ -46,14 +46,12 @@ def calculate_pressure_parameters(N, motor: MotorConfig, c_star=0):
     # FIX:
     Vg0 = ((pi / 4) * (De ** 2 - Di ** 2) * L0 * Ng) / 1000 ** 3
     V_free_initial = Vc - Vg0  # This is the actual empty space available for gas
-    Pc0 = 5 * patm
-    Pc_Mpa[0] = Pc0
+
     m_grain[0] = rho_g * Vg0
     rdot[0] = rdp(prop, Pc0)
 
     # 2. Calculate Initial Free Volume (The empty space)
     # Vc is the empty motor case volume (calculated earlier in your code)
-    V_free_initial = Vc - Vg0
 
 
     # 3. Initialize Mass for Atmospheric Pressure (0.1 MPa)
@@ -68,14 +66,17 @@ def calculate_pressure_parameters(N, motor: MotorConfig, c_star=0):
     # This prevents the "Fizzle" where flow drains too fast.
     # =========================================================
 
-    m_sto[0] = (Pc0 * 1e6 * Vc) / ratto
+    m_sto[0] = (Pc0 * 1e6 * V_free_initial) / ratto
     # =========================================================
     # ic(osi,csi,esi)
     for i in range(1, N):
         curr_di = Di + csi * 2 * s[i]
         curr_de = De - osi * 2 * s[i]
-        curr_l = (L0 * Ng) - esi * 2 * s[i]
-
+        curr_l_per_grain = L0 - esi * 2 * s[i]  # Burn per grain first
+        curr_l = curr_l_per_grain * Ng  # Then multiply
+        Ab_mm2 = ((pi / 4) * (curr_de ** 2 - curr_di ** 2) * 2 * Ng * esi) + \
+                 (pi * curr_de * curr_l * osi) + \
+                 (pi * curr_di * curr_l * csi)
         Vg_m3 = ((pi / 4) * (curr_de ** 2 - curr_di ** 2) * curr_l) / (1000 ** 3)
         Vg_m3 = max(Vg_m3, 1e-9)
         V_free = Vc - Vg_m3
@@ -114,7 +115,7 @@ def calculate_pressure_parameters(N, motor: MotorConfig, c_star=0):
             if len(t) > N * 1.1: break
 
     # ic(tbout, rdot)
-    return t, ic(Pc_Mpa), k, tbout, np.average(rdot), m_grain[0]
+    return t, (Pc_Mpa), k, tbout, np.average(rdot), m_grain[0]
 
 if __name__ == '__main__':
     # Test with the new library structure

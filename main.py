@@ -21,7 +21,7 @@ def main():
     mot_2 = "Quark3"
     MOT = mot_2
 
-    run_full_simulation(MOT, auto_size_throat=True)
+    run_full_simulation(MOT, auto_size_throat=False)
 
     # [1] STANDARD RUN
     # The default workhorse. Check stats and standard plots.
