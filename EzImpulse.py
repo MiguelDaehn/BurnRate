@@ -380,9 +380,6 @@ def design_modular_grain(target_1_ns: float,
     if not found_solution:
         print(f"\n❌ No common grain geometry found within {tolerance * 100}% tolerance.")
         print("   Try changing De/Di dimensions or relaxing the tolerance.")
-    else:
-        print("\n   ✅ Fabrication Note: Make one mold for the length above.")
-
 
 def design_dual_mission_system(
         # --- Mission A (e.g., Test Flight) ---
@@ -440,6 +437,9 @@ def design_dual_mission_system(
     # --- STEP 3: FIND COMMON GEOMETRY ---
     print(f"\n3️⃣  Synthesizing Modular Grain Geometry...")
     print(f"    Searching for a common grain segment for {impulse_a:.0f} Ns and {impulse_b:.0f} Ns...")
+
+    impulse_a = round(impulse_a, 1)
+    impulse_b = round(impulse_b, 1)
 
     design_modular_grain(
         target_1_ns=impulse_a,
