@@ -1,7 +1,7 @@
 from startup import *
 from burnrate import rdp
 from motor_library import MotorConfig, process_motor_specs
-
+import propellants as prop_db
 
 def calculate_pressure_parameters(N, motor: MotorConfig, c_star=0):
     """
@@ -27,10 +27,14 @@ def calculate_pressure_parameters(N, motor: MotorConfig, c_star=0):
     Vc = (Lc * (pi / 4) * De ** 2) / 1000 ** 3
 
     # 3. Thermochemical Properties
-    dp = dict_prop.get(prop.lower().split('_')[0], 2)
-    rat = Ru / properties_table[2][dp]
+    M_val = prop_db.get_molar_mass(motor.prop)
+    rat = Ru / M_val
+
     nuc = motor.nuc
-    ratto = rat * (nuc * properties_table[3][dp])
+
+    # Was: ratto = rat * (nuc * properties_table[3][dp])
+    T0_val = prop_db.get_combustion_temp(motor.prop)
+    ratto = rat * (nuc * T0_val)
 
     if c_star == 0:
         c_star = np.sqrt(ratto / k * (((k + 1) / 2) ** ((k + 1) / (k - 1))))
