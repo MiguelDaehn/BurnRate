@@ -1,8 +1,6 @@
-# burnrate.py
-import numpy as np
-from scipy.optimize import curve_fit
 from startup import *
 from motor_library import MotorConfig
+import propellants as prop_db  # <--- NEW
 
 
 def Ab_f(N, De, Di0, L, s):
@@ -22,7 +20,7 @@ def func_powerlaw(x, a, n):
 target_func = func_powerlaw
 
 
-def BR_from_pressure(id, motor: MotorConfig):  # Changed to accept MotorConfig object
+def BR_from_pressure(id, motor: MotorConfig):
     T, Pc = LoadData('BR', id.lower(), 'csv')
     if max(Pc > 1e5):
         Pc = Pc / 10 ** 6
@@ -31,10 +29,10 @@ def BR_from_pressure(id, motor: MotorConfig):  # Changed to accept MotorConfig o
     delta_t = np.append(delta_t, delta_t[-1])
     dt_avg = np.average(delta_t)
 
-    # Use attributes from the motor object instead of array indices
+    # Use attributes from the motor object
     p_min = motor.p_min
     p_max = motor.p_max
-    prop = motor.prop.lower()
+    prop = motor.prop
     Dt = motor.Dt
     rho_pct = motor.Rho_pct
     Ng = motor.Ng
@@ -43,9 +41,9 @@ def BR_from_pressure(id, motor: MotorConfig):  # Changed to accept MotorConfig o
     Di = motor.Di
 
     w0 = (De - Di) / 2
-    dp = dict_prop.get(prop.split('_')[0], 2)  # Handle sub-variants like 'knsu_geprop'
 
-    rhoideal = properties_table[0][dp]
+    # NEW: Get density from propellants.py instead of dict_prop
+    rhoideal = prop_db.get_density(prop)
     rho_g = rho_pct * rhoideal
 
     At = pi * (Dt / 2) ** 2
@@ -92,15 +90,12 @@ def BR_from_pressure(id, motor: MotorConfig):  # Changed to accept MotorConfig o
         ds_dt = ds_dt[z]
 
     pars, _ = curve_fit(func_powerlaw, Pc, ds_dt, p0=np.asarray([5, 0.5]), maxfev=10000)
-    return Pc, ds_dt, [pars[0], pars[1], 0]  # Returns a, n, R2 placeholder
+    return Pc, ds_dt, [pars[0], pars[1], 0]
 
 
 def pp(propt):
-    # Strip sub-variants (e.g., 'knsu_geprop_02' -> 'knsu') to find the CSV
+    # Strip sub-variants (e.g., 'knsu_geprop_02' -> 'knsu')
     base_prop = propt.split('_')[0]
-
-    # --- UPDATE: Pointing to the new subfolder ---
-    # Was: 'data/BR_dict_' + ...
     rddatapath = f'data/propellants/BR_dict_{base_prop}.csv'
 
     try:
@@ -110,47 +105,23 @@ def pp(propt):
         print(f"Warning: Burn rate file for {base_prop} not found at {rddatapath}")
         return np.array([])
 
+
 def rdp(prop, P=1.0):
     rd_prop = pp(prop)
     if P > 1e5:
         P = P * 1e-6
 
     # Logic to find the correct pressure interval
+    if len(rd_prop) == 0: return 0
+
     for row in rd_prop:
         if (P >= row[0]) and (P <= row[1]):
             return row[2] * P ** row[3]
 
-    print(f'Propellant: {prop} at Pressure: {P}')
-    raise ValueError('ERROR: no adequate pressure interval found!')
-
-
-def test_BR_from_pressure(id_file, motor_id, p_min=3.5, p_max=4.5):
-    from motor_library import load_motor
-    motor = load_motor(motor_id)
-    motor.p_min = p_min
-    motor.p_max = p_max
-    Pc, BR, [a, n, R2] = BR_from_pressure(id_file, motor)
-    plt.plot(Pc, target_func(Pc, *[a,n]), '--')
-    pl(Pc, BR, 'Chamber Pressure [MPa]', 'Burn Rate [mm/s]',
-       f'Burn Rate as a function of Pressure - R²={round(R2,3)}',
-       labelf=f'{round(a,5)}·P^{round(n,5)}', log=0,
-       x0f=[0.95 * p_min, 1.0 * p_max],
-       y0f=[0.95 * min(BR[np.where(BR > 0)]), 1.05 * max(BR[np.where(BR < 40)])])
-
-def plot_br_multiple(arr_str=ar(['knsb', 'knsu']),p_int=[0.1 , 10.0]):
-    p_min = p_int[0]
-    p_max = p_int[1]
-    Prange = np.linspace(p_min, p_max, 1000)
-    arrstr = ar(arr_str)
-
-    for rd in arrstr:
-        Rd = ar([rdp(rd, p) for p in Prange])
-        plt.plot(Prange, Rd)
-        print(f'{rd} at 1 atm: {rdp(rd,0.101)}')
-
-    plt.xlabel('Pressure [MPa]');plt.ylabel('R_dot [mm/s]');plt.title('Rd Values vs Pressure')
-    plt.legend();plt.grid()
-    plt.show()
+    # raise ValueError(f'ERROR: no adequate pressure interval found for {prop} at {P} MPa!')
+    # Fallback to last known row (extrapolation) instead of crash
+    last_row = rd_prop[-1]
+    return last_row[2] * P ** last_row[3]
 
 
 def main():
