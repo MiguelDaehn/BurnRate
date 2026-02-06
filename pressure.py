@@ -2,7 +2,9 @@ from startup import *
 from burnrate import rdp
 from motor_library import MotorConfig, process_motor_specs
 import propellants as prop_db
+from numba import jit
 
+@jit(nopython=True)
 def calculate_pressure_parameters(N, motor: MotorConfig, c_star=0):
     """
     Calculates chamber pressure using O-ring spacing and pre-processed specs.
