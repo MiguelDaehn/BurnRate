@@ -1,11 +1,7 @@
-# motor_library.py
 from dataclasses import dataclass
-import os
-import json
 import numpy as np
-from startup import *
-import numpy as np
-from startup import dict_prop, properties_table, Ru, pi  # Add this line
+from startup import pi
+import propellants as prop_db  # <--- NEW: Uses the new database
 
 @dataclass
 class MotorConfig:
@@ -24,25 +20,7 @@ class MotorConfig:
     core_surface_inhibited: int = 1
     ends_surface_inhibited: int = 1
     outer_surface_inhibited: int = 0
-    o_ring_thickness: float = 0.0 # Added for TODO #10
-
-def get_config_table_data(motor: MotorConfig):
-    """
-    Helper to format motor data for reports.
-    Moved here to avoid circular imports with reporting.py
-    """
-    # Flattened format: Parameter | Value | Unit
-    return [
-        ["Motor ID", motor.name, "-"],
-        ["Propellant", motor.prop, "-"],
-        ["Grain Length", f"{motor.L:.1f}", "mm"],
-        ["Grain OD", f"{motor.De:.1f}", "mm"],
-        ["Grain ID", f"{motor.Di:.1f}", "mm"],
-        ["No. of Grains", str(motor.Ng), "-"],
-        ["Throat Dia", f"{motor.Dt:.2f}", "mm"],
-        ["Target Pressure", f"{motor.P_target:.1f}", "MPa"],
-    ]
-
+    o_ring_thickness: float = 0.0
 
 L_a = 36.5; De_a = 56.0; Di_a = 25.0;oring_a=3.3
 
@@ -63,93 +41,49 @@ MOTOR_LIBRARY = {
 }
 
 
-def run_motor_analysis(motor_name: str):
-    """
-    One-stop function to load a motor, run the simulation, and export all
-    required data (OpenRocket .eng and PDF reports) to the correct system paths.
-
-    Usage:
-        run_motor_analysis("motor_hadron_04")
-    """
-    print(f"🚀 Processing: {motor_name}...")
-
-    # 1. Load & Simulate
-    # Defaulting to N=10000, eta=0.95, Ae/At=6.278 based on your previous settings
-    try:
-        motor = load_motor(motor_name)
-        F, Pc, t, Cf, It = calculate_thrust(10000, motor, 0.95, 6.278)
-    except Exception as e:
-        print(f"❌ Failed to load or simulate {motor_name}: {e}")
-        return
-
-    # 2. Setup Export Paths
-    base_dir = os.path.abspath(os.path.dirname(__file__))
-    path_eng_local = os.path.join(base_dir, 'data', 'results', 'eng_files')
-    path_pdf_local = os.path.join(base_dir, 'data', 'results', 'reports')
-
-    # OS-Agnostic OpenRocket Path
-    if platform.system() == "Windows":
-        path_eng_or = os.path.join(os.getenv('APPDATA'), 'OpenRocket', 'ThrustCurves')
-    else:
-        path_eng_or = os.path.expanduser('~/.openrocket/ThrustCurves')
-
-    # Ensure directories exist
-    for p in [path_eng_local, path_pdf_local, path_eng_or]:
-        os.makedirs(p, exist_ok=True)
-
-    # 3. Export .eng Files (OpenRocket)
-    info_eng = {
-        'filename': f"{motor.name}_sim",
-        'name': f"{motor.name} (Simulated)",
-        'outer_diameter': f"{motor.De:.1f}",
-        'length': f"{motor.L * motor.Ng:.1f}",
-        'delay_charge_time': '0',
-        'propellant_mass': f"{(It / 1200):.3f}",
-        'total_mass': f"{(It / 1000):.3f}",
-        'manufacturer': 'TauRocketTeam'
-    }
-
-    data_stack = np.column_stack((t, F))
-
-    # Save to Local and OpenRocket folders
-    save_array_to_eng_file(data_stack, info_eng, path_eng_local)
-    save_array_to_eng_file(data_stack, info_eng, path_eng_or)
-    print(f"   Refreshed OpenRocket file at: {path_eng_or}")
-
-    # 4. Export PDF Report
-    pdf_path = os.path.join(path_pdf_local, f"{motor.name}_Report.pdf")
-    create_pdf_report(motor, t, Pc, F, It, filename=pdf_path)
-
-    print(f"✅ {motor_name} analysis complete.\n")
-
-
-
-
-
 def load_motor(motor_id: str) -> MotorConfig:
     if motor_id not in MOTOR_LIBRARY:
+        # Fallback for dynamic motor creation if needed, or error
         raise ValueError(f"Motor '{motor_id}' not found in library.")
     return MotorConfig(name=motor_id, **MOTOR_LIBRARY[motor_id])
 
 
+def get_grain_mass(motor: MotorConfig) -> float:
+    """Calculates geometric mass."""
+    specs = process_motor_specs(motor)
+    rho_g = specs['rho_g']
+    volume_mm3 = (np.pi / 4) * (motor.De**2 - motor.Di**2) * motor.L * motor.Ng
+    volume_m3 = volume_mm3 / 1e9
+    return volume_m3 * rho_g
+
+
+def get_config_table_data(motor: MotorConfig):
+    """Helper for reporting."""
+    return [
+        ["Motor ID", motor.name, "-"],
+        ["Propellant", motor.prop, "-"],
+        ["Grain Length", f"{motor.L:.1f}", "mm"],
+        ["Grain OD", f"{motor.De:.1f}", "mm"],
+        ["Grain ID", f"{motor.Di:.1f}", "mm"],
+        ["No. of Grains", str(motor.Ng), "-"],
+        ["Throat Dia", f"{motor.Dt:.2f}", "mm"],
+        ["Target Pressure", f"{motor.P_target:.1f}", "MPa"],
+    ]
+
+
 def process_motor_specs(motor: MotorConfig):
-    from startup import find_kn_max  # Local import to avoid circular dependencies
-
-    #this
-    base_prop = motor.prop.split('_')[0]
-    dp = dict_prop.get(base_prop, 2)
-
-    # 1. Thermochemicals
-    rho_ideal = properties_table[0][dp]
+    # 1. Thermochemicals (FETCHED FROM PROPELLANTS.PY)
+    rho_ideal = prop_db.get_density(motor.prop)
     rho_g = 1000 * rho_ideal * motor.Rho_pct
-    k = properties_table[1][dp]
+    k = prop_db.get_k(motor.prop)
 
-    # 2. Geometry (TODO #10: Accounting for O-rings)
+    # 2. Geometry
     total_grain_l = motor.L * motor.Ng
     lc_with_rings = (total_grain_l + (motor.Ng - 1) * motor.o_ring_thickness) * 1.2
 
-    # 3. Nozzle Sizing (TODO #7)
-    kn_required = find_kn_max(base_prop, motor.P_target)
+    # 3. Nozzle Sizing (FETCHED FROM PROPELLANTS.PY)
+    # This replaces the old "from startup import find_kn_max"
+    kn_required = prop_db.find_kn_max(motor.prop, motor.P_target)
 
     # Simplified Ab_max for sizing check
     Ab_max = ((pi / 4) * (motor.De ** 2 - motor.Di ** 2) * 2 * motor.Ng * motor.ends_surface_inhibited) + \

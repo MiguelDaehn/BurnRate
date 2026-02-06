@@ -15,7 +15,7 @@ def main():
     mot_2 = "Quark3_"+n
 
     run_motor_analysis(mot_1, auto_size=True)
-    run_motor_analysis(mot_2, auto_size=True)
+    # run_motor_analysis(mot_2, auto_size=True)
 
     design_dois_apogeus = 0
     if design_dois_apogeus == 1:
