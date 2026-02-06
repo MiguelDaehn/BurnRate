@@ -5,7 +5,7 @@ from scipy.optimize import brentq
 G0 = 9.80665
 MAX_IT = 5_000.0
 MIN_IT = 0.1
-
+TOLERANCE = 0.05
 
 # Standard properties (Density in g/cm^3)
 # Based on your uploaded Hadron data sheet
@@ -287,7 +287,7 @@ def design_modular_grain(target_1_ns: float,
                          Di_mm: float,
                          prop_name: str,
                          density_eff: float = 0.95,
-                         tolerance: float = 0.10):
+                         tolerance: float = TOLERANCE):
     """
     Finds a SINGLE grain geometry (Length) that can fulfill TWO different
     impulse targets simply by changing the number of grains (Ng).
@@ -398,7 +398,7 @@ def design_dual_mission_system(
         motor_od_mm: float,
         motor_core_mm: float,
         propellant: str,
-        isp_estimate: float = 130
+        isp_estimate: float = 110
 ):
     """
     Full pipeline:

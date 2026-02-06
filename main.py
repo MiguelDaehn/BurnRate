@@ -2,7 +2,7 @@
 from demos import *
 from startup import *
 from analysis import run_motor_analysis
-
+from EzImpulse import design_dual_mission_system
 
 def main():
     """
@@ -16,6 +16,19 @@ def main():
     run_motor_analysis(mot_1, auto_size=True)
     run_motor_analysis(mot_2, auto_size=True)
 
+    design_dual_mission_system(
+        alt_target_a_m=600,
+        dry_mass_a_kg=3.073,
+
+        alt_target_b_m=1200,
+        dry_mass_b_kg=3.500,
+
+        cd=0.5,
+        airframe_dia_mm=2.5 * 25.4,
+        motor_od_mm=56,
+        motor_core_mm=25,
+        propellant='knsb'
+    )
 
 
 
