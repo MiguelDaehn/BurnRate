@@ -10,16 +10,16 @@ from startup import dict_prop, properties_table, Ru, pi  # Add this line
 @dataclass
 class MotorConfig:
     name: str
-    prop: str
     Dt: float
-    Rho_pct: float
     Ng: int
     L: float
     De: float
     Di: float
-    p_min: float = 0.0
+    prop: str = 'knsb'
+    Rho_pct: float = 0.95
+    p_min: float = 0.01
     p_max: float = 10.0
-    P_target: float = 0.0
+    P_target: float = 3.0
     nuc: float = 0.95
     core_surface_inhibited: int = 1
     ends_surface_inhibited: int = 1
@@ -44,6 +44,8 @@ def get_config_table_data(motor: MotorConfig):
     ]
 
 
+L_a = 100.0; De_a = 56.0; Di_a = 20.0
+
 MOTOR_LIBRARY = {
     "motor_1": {"prop": 'knsb', "Dt": 9.659, "Rho_pct": 0.95, "Ng": 4, "L": 50.0, "De": 45.0, "Di": 25.0, "P_target": 4.5, "core_surface_inhibited": 1, "ends_surface_inhibited": 1, "outer_surface_inhibited": 0},
     "motor_2": {"prop": 'knpsb', "Dt": np.sqrt(81.1 / (np.pi / 4)) , "Rho_pct": 1.912/1.923, "Ng": 2, "L": 65.0, "De": 43.1, "Di": 13.88, "p_min": 3.5, "p_max": 6, "P_target": 4.5, "core_surface_inhibited": 1, "ends_surface_inhibited": 1, "outer_surface_inhibited": 0},
@@ -56,9 +58,8 @@ MOTOR_LIBRARY = {
     "motor_tauzinha": {"prop": 'knsu', "Dt": 12, "Rho_pct": 0.95, "Ng": 2, "L": 70, "De": 48, "Di": 20,
                  "p_min": 0.0, "p_max": 1.6, "P_target": 1.091, "core_surface_inhibited": 1,
                  "ends_surface_inhibited": 1, "outer_surface_inhibited": 0},
-    "motor_hadron_04": {"prop": 'knsb', "Dt": 10.3, "Rho_pct": 0.95, "Ng": 3, "L": 60.0, "De": 56.0, "Di": 25.0, "P_target": 4.0, "core_surface_inhibited": 1, "ends_surface_inhibited": 1, "outer_surface_inhibited": 0},
-    "motor_quark3_04": {"prop": 'knsb', "Dt": 8.0, "Rho_pct": 0.95, "Ng": 2, "L": 60.0, "De": 56.0, "Di": 25.0, "P_target": 4.0, "core_surface_inhibited": 1, "ends_surface_inhibited": 1, "outer_surface_inhibited": 0}
-
+    "Hadron_07": {"Dt": 10.0, "Rho_pct": 0.95, "Ng": 2, "L": L_a, "De": De_a, "Di": Di_a, "P_target": 4.0},
+    "Quark3_07": {"Dt": 7.0, "Rho_pct": 0.95, "Ng": 1, "L": L_a, "De": De_a, "Di": Di_a, "P_target": 4.0}
 }
 
 

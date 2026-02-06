@@ -10,14 +10,17 @@ from plots import save_array_to_eng_file
 from reporting import create_pdf_report
 
 
-def find_optimal_throat(motor, target_p_mpa, tol=1e-3):
+def find_optimal_throat(motor, target_p_mpa, tol=1e-5, max_par=0.99):
     """
     Iteratively solves for the Throat Diameter (Dt) that results
     in exactly the target Peak Pressure.
     """
+
+
     print(f"   ⚙️ Auto-Sizing Enabled. Target: {target_p_mpa} MPa")
     print(f"      Iterating to find precise Dt...")
 
+    target_p_mpa *=max_par
     original_dt = motor.Dt
 
     # Define the "Error Function" we want to find the root of
@@ -53,6 +56,25 @@ def find_optimal_throat(motor, target_p_mpa, tol=1e-3):
     except Exception as e:
         print(f"   ⚠️ Optimization Failed: {e}")
         return original_dt
+
+def get_grain_mass(motor: "MotorConfig") -> float:
+    """
+    Calculates the total propellant mass in kg based on geometry and propellant type.
+    """
+    # 1. Get density (rho_g) from your existing processor
+    # This handles the KNSB vs KNSU density differences automatically
+    specs = process_motor_specs(motor)
+    rho_g = specs['rho_g'] # kg/m^3
+
+    # 2. Calculate Volume (mm^3 -> m^3)
+    # V = Area_cross_section * Length * Number_of_grains
+    volume_mm3 = (np.pi / 4) * (motor.De**2 - motor.Di**2) * motor.L * motor.Ng
+    volume_m3 = volume_mm3 / 1e9
+
+    # 3. Calculate Mass
+    mass_kg = volume_m3 * rho_g
+    return mass_kg
+
 
 
 def run_motor_analysis(motor_name: str, auto_size: bool = False):
@@ -100,15 +122,16 @@ def run_motor_analysis(motor_name: str, auto_size: bool = False):
     for p in [path_eng_local, path_pdf_local, path_eng_or]:
         os.makedirs(p, exist_ok=True)
 
+    grain_mass = get_grain_mass(motor)
     # 5. Export Data
     info_eng = {
-        'filename': f"{motor.name}_sim",
-        'name': f"{motor.name} (Simulated)",
+        'filename': f"{motor.name}",
+        'name': f"{motor.name}",
         'outer_diameter': f"{motor.De:.1f}",
-        'length': f"{motor.L * motor.Ng:.1f}",
-        'delay_charge_time': '0',
-        'propellant_mass': f"{(It / 1200):.3f}",
-        'total_mass': f"{(It / 1000):.3f}",
+        'length': f"{(motor.L+motor.o_ring_thickness) * motor.Ng:.1f}",
+        'delay_charge_time': 'P',
+        'propellant_mass': f"{grain_mass:.3f}",
+        'total_mass': f"{grain_mass:.3f}",
         'manufacturer': 'TauRocketTeam'
     }
 

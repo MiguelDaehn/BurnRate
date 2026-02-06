@@ -1,11 +1,13 @@
 import os
 import sys
 import time
-import warnings # <--- This fixes the NameError
+import warnings
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.optimize import curve_fit, brentq
 from math import pi, sqrt, exp, log
+from icecream import ic
+from numpy import where
 
 # Suppress RuntimeWarnings
 # Debugging: turn this off
@@ -154,6 +156,9 @@ def find_kn_max(prop_type, P_target):
 
     a, b, c, d, e, f, g = KN_table[prop, :]
     return kn_f(P_target, a, b, c, d, e, f, g)
+
+
+
 
 def main():
 

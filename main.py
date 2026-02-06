@@ -10,11 +10,12 @@ def main():
     Uncomment the function you want to run.
     """
     print("--- SRM Simulator Ready ---")
-    mot_1 = "motor_hadron_04"
-    mot_2 = "motor_quark3_04"
-    MOT = mot_2
+    mot_1 = "Hadron_07"
+    mot_2 = "Quark3_07"
 
-    run_motor_analysis(MOT, auto_size=True)
+    run_motor_analysis(mot_1, auto_size=True)
+    run_motor_analysis(mot_2, auto_size=True)
+
 
 
 
