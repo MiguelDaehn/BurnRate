@@ -384,9 +384,70 @@ def design_modular_grain(target_1_ns: float,
         print("\n   ✅ Fabrication Note: Make one mold for the length above.")
 
 
-def get_grain_from_altitude():
+def design_dual_mission_system(
+        # --- Mission A (e.g., Test Flight) ---
+        alt_target_a_m: float,
+        dry_mass_a_kg: float,
 
-    return 0
+        # --- Mission B (e.g., Competition Flight) ---
+        alt_target_b_m: float,
+        dry_mass_b_kg: float,
+
+        # --- Shared Vehicle Parameters (Optional: split these too if totally different rockets) ---
+        cd: float,
+        airframe_dia_mm: float,
+
+        # --- Motor Parameters (Constraints) ---
+        motor_od_mm: float,
+        motor_core_mm: float,
+        propellant: str,
+        isp_estimate: float = 130
+):
+    """
+    Full pipeline:
+    1. Determines required Impulse for two different rockets/missions.
+    2. Synthesizes a single grain geometry that fits both by changing stacking (Ng).
+    """
+    print(f"🚀 === DUAL MISSION OPTIMIZER === 🚀")
+    print(f"   Mission A: {alt_target_a_m}m (Dry Mass: {dry_mass_a_kg} kg)")
+    print(f"   Mission B: {alt_target_b_m}m (Dry Mass: {dry_mass_b_kg} kg)")
+    print(f"   Motor Constraint: OD={motor_od_mm}mm, Core={motor_core_mm}mm ({propellant})")
+
+    # --- STEP 1: SOLVE FOR IMPULSE A ---
+    print(f"\n1️⃣  Analyzing Mission A ({alt_target_a_m}m)...")
+    impulse_a = solve_required_impulse(
+        target_alt_m=alt_target_a_m,
+        dry_mass_kg=dry_mass_a_kg,
+        cd=cd,
+        diameter_mm=airframe_dia_mm,
+        isp_s=isp_estimate
+    )
+
+    # --- STEP 2: SOLVE FOR IMPULSE B ---
+    print(f"\n2️⃣  Analyzing Mission B ({alt_target_b_m}m)...")
+    impulse_b = solve_required_impulse(
+        target_alt_m=alt_target_b_m,
+        dry_mass_kg=dry_mass_b_kg,
+        cd=cd,
+        diameter_mm=airframe_dia_mm,
+        isp_s=isp_estimate
+    )
+
+    if not impulse_a or not impulse_b:
+        print("\n❌ Critical Failure: Could not calculate required impulse for one or both missions.")
+        return
+
+    # --- STEP 3: FIND COMMON GEOMETRY ---
+    print(f"\n3️⃣  Synthesizing Modular Grain Geometry...")
+    print(f"    Searching for a common grain segment for {impulse_a:.0f} Ns and {impulse_b:.0f} Ns...")
+
+    design_modular_grain(
+        target_1_ns=impulse_a,
+        target_2_ns=impulse_b,
+        De_mm=motor_od_mm,
+        Di_mm=motor_core_mm,
+        prop_name=propellant
+    )
 
 
 # --- DEMO BLOCK ---
@@ -424,3 +485,17 @@ if __name__ == "__main__":
     #     Di_mm=25,
     #     prop_name='knsb'
     # )
+
+    design_dual_mission_system(
+        alt_target_a_m=600,
+        dry_mass_a_kg=3.073,
+
+        alt_target_b_m=1200,
+        dry_mass_b_kg=3.500,
+
+        cd=0.5,
+        airframe_dia_mm=2.5*25.4,
+        motor_od_mm=56,
+        motor_core_mm=25,
+        propellant='knsb'
+    )
