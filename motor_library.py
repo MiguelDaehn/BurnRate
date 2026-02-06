@@ -44,7 +44,7 @@ def get_config_table_data(motor: MotorConfig):
     ]
 
 
-L_a = 100.0; De_a = 56.0; Di_a = 20.0
+L_a = 36.5; De_a = 56.0; Di_a = 25.0;oring_a=3.3
 
 MOTOR_LIBRARY = {
     "motor_1": {"prop": 'knsb', "Dt": 9.659, "Rho_pct": 0.95, "Ng": 4, "L": 50.0, "De": 45.0, "Di": 25.0, "P_target": 4.5, "core_surface_inhibited": 1, "ends_surface_inhibited": 1, "outer_surface_inhibited": 0},
@@ -58,8 +58,8 @@ MOTOR_LIBRARY = {
     "motor_tauzinha": {"prop": 'knsu', "Dt": 12, "Rho_pct": 0.95, "Ng": 2, "L": 70, "De": 48, "Di": 20,
                  "p_min": 0.0, "p_max": 1.6, "P_target": 1.091, "core_surface_inhibited": 1,
                  "ends_surface_inhibited": 1, "outer_surface_inhibited": 0},
-    "Hadron_07": {"Dt": 10.0, "Rho_pct": 0.95, "Ng": 2, "L": L_a, "De": De_a, "Di": Di_a, "P_target": 4.0},
-    "Quark3_07": {"Dt": 7.0, "Rho_pct": 0.95, "Ng": 1, "L": L_a, "De": De_a, "Di": Di_a, "P_target": 4.0}
+    "Hadron_09": {"Dt": 13.0, "Ng": 5, "L": L_a, "De": De_a, "Di": Di_a, "P_target": 4.0, "o_ring_thickness": oring_a},
+    "Quark3_09": {"Dt": 10.00, "Ng": 3, "L": L_a, "De": De_a, "Di": Di_a, "P_target": 4.0, "o_ring_thickness": oring_a}
 }
 
 

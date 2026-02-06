@@ -10,25 +10,28 @@ def main():
     Uncomment the function you want to run.
     """
     print("--- SRM Simulator Ready ---")
-    mot_1 = "Hadron_07"
-    mot_2 = "Quark3_07"
+    n = "09"
+    mot_1 = "Hadron_"+n
+    mot_2 = "Quark3_"+n
 
     run_motor_analysis(mot_1, auto_size=True)
     run_motor_analysis(mot_2, auto_size=True)
 
-    design_dual_mission_system(
-        alt_target_a_m=600,
-        dry_mass_a_kg=3.073,
+    design_dois_apogeus = 0
+    if design_dois_apogeus == 1:
+        design_dual_mission_system(
+            alt_target_a_m=500*1.3,
+            dry_mass_a_kg=3.100,
 
-        alt_target_b_m=1200,
-        dry_mass_b_kg=3.500,
+            alt_target_b_m=1000*1.3,
+            dry_mass_b_kg=3.500,
 
-        cd=0.5,
-        airframe_dia_mm=2.5 * 25.4,
-        motor_od_mm=56,
-        motor_core_mm=25,
-        propellant='knsb'
-    )
+            cd=0.5,
+            airframe_dia_mm=2.5 * 25.4,
+            motor_od_mm=56,
+            motor_core_mm=25,
+            propellant='knsb'
+        )
 
 
 
