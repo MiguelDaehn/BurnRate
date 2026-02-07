@@ -3,6 +3,7 @@ from motor_library import MotorConfig
 import propellants as prop_db  # <--- NEW
 
 
+
 def Ab_f(N, De, Di0, L, s):
     A_b = pi * N * (0.5 * (De ** 2 - (Di0 + 2 * s) ** 2) + (L - 2 * s) * (Di0 + 2 * s))
     return A_b
@@ -18,6 +19,18 @@ def func_powerlaw(x, a, n):
 
 
 target_func = func_powerlaw
+
+
+def get_cstar_theoretical(P_mpa):
+    # Retrieve base C* from your propellant database (e.g., KNSU ~895 m/s)
+    # If you don't have this function yet, just use a constant like 895.
+    base_cstar = 895.0
+
+    # Pressure correction factor (thermodynamics)
+    # C* drops at low pressure. This is a typical curve shape.
+    if P_mpa < 0.1: return base_cstar * 0.8
+    return base_cstar * (P_mpa ** 0.01)
+
 
 
 def BR_from_pressure(id, motor: MotorConfig):
@@ -51,7 +64,22 @@ def BR_from_pressure(id, motor: MotorConfig):
     Vg = pi * ((De / 2 / 10) ** 2 - (Di / 2 / 10) ** 2) * (L / 10)
     mp = Ng * Vg * rho_g
     Psum = np.sum(Pc)
-    cstar = ((At / mp) * Psum * dt_avg) / 1000
+    # cstar = ((At / mp) * Psum * dt_avg) / 1000 # old! considered C* constant but it varies a lot especially in these types of short burn motors
+    integral_theoretical = 0
+    for p_val in Pc:
+        c_theo = get_cstar_theoretical(p_val)
+        integral_theoretical += (p_val / c_theo) * dt_avg
+
+    # 2. Solve for Combustion Efficiency (Eta)
+    # Mass = At * Eta * Integral(P/C_theo)
+    # So: Eta = Mass / (At * Integral)
+    # Factor 1000 is for unit conversion if P is MPa and Mass is kg
+    eta_combustion = mp / ((At / 1000) * integral_theoretical)
+
+    # print(f"DEBUG: Efficiency = {eta_combustion:.3f}")
+    # --- NEW C-STAR LOGIC END ---
+
+
     err_w0 = 1.0
 
     Ab = np.zeros_like(T)
@@ -69,7 +97,11 @@ def BR_from_pressure(id, motor: MotorConfig):
             if i > 1:
                 s[i] = s[i - 1] + delta_s[i - 1]
             if i > 0:
-                delta_s[i] = Delta_s(At, Ab[i], Pc[i], rho_g, cstar, delta_t[i])
+                # Calculate local C* for this specific pressure point
+                cstar_local = get_cstar_theoretical(Pc[i]) / eta_combustion
+
+                # Use local C* instead of average
+                delta_s[i] = Delta_s(At, Ab[i], Pc[i], rho_g, cstar_local, delta_t[i])
                 ds_dt[i] = delta_s[i] / delta_t[i] if delta_t[i] != 0 else 0
 
         err_w0 = err(w0, s[-1])
